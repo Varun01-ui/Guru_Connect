@@ -1,0 +1,126 @@
+:root {
+  color-scheme: light dark;
+  --color-bg: #f4f5fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f9fc;
+  --color-fg: #0f1631;
+  --color-fg-muted: #5f6781;
+  --color-border: #e3e6ef;
+  --color-accent: #4338ca;
+  --color-accent-hover: #372dab;
+  --color-accent-soft: #eef0ff;
+  --color-navy: #0e1433;
+  --color-navy-2: #161d45;
+  --color-navy-ink: #c9cdf0;
+  --color-navy-ink-muted: #8f96c7;
+  --color-good: #067647;
+  --color-good-soft: #e7f8ee;
+  --color-warn: #a15c07;
+  --color-warn-soft: #fff6e0;
+  --color-bad: #b42318;
+  --color-bad-soft: #fdeceb;
+  --color-info: #175cd3;
+  --color-info-soft: #e8f1ff;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 20px 40px -12px rgba(15, 22, 49, 0.25);
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Sora', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #0a0e1c;
+  --color-surface: #11172a;
+  --color-surface-2: #151c32;
+  --color-fg: #eef0f8;
+  --color-fg-muted: #9aa2bb;
+  --color-border: #232c48;
+  --color-accent: #7b74f5;
+  --color-accent-hover: #8f89ff;
+  --color-accent-soft: #1f1f4d;
+  --color-navy: #070a16;
+  --color-navy-2: #11163a;
+  --color-navy-ink: #c9cdf0;
+  --color-navy-ink-muted: #8f96c7;
+  --color-good: #4ad18b;
+  --color-good-soft: #0f2a1f;
+  --color-warn: #f2b54b;
+  --color-warn-soft: #2d2210;
+  --color-bad: #ff7b72;
+  --color-bad-soft: #331615;
+  --color-info: #6ea8ff;
+  --color-info-soft: #12213d;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float-blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(3%, -4%) scale(1.08);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
