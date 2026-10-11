@@ -8,7 +8,16 @@ import { usePermissions } from '../features/auth/usePermissions'
 // Sidebar entries grow one line per module as each ships (04-react-app-structure.md has the full map).
 const NAV: { section: string; items: { to: string; label: string; permission?: string; end?: boolean }[] }[] = [
   { section: 'Overview', items: [{ to: '/', label: 'Dashboard', end: true }] },
-  { section: 'Masters', items: [{ to: '/masters/locations/countries', label: 'Countries', permission: 'locations.read' }] },
+  {
+    section: 'Masters',
+    items: [
+      { to: '/masters/locations/countries', label: 'Countries', permission: 'locations.read' },
+      { to: '/masters/locations/states', label: 'States', permission: 'locations.read' },
+      { to: '/masters/education/classes', label: 'Classes', permission: 'education_masters.read' },
+      { to: '/masters/education/teaching-modes', label: 'Teaching modes', permission: 'education_masters.read' },
+      { to: '/masters/education/teacher-categories', label: 'Teacher categories', permission: 'education_masters.read' },
+    ],
+  },
 ]
 
 function initials(name: string): string {

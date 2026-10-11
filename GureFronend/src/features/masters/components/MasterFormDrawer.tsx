@@ -1,10 +1,11 @@
 import { useEffect, useId, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import type { DefaultValues, FieldValues, Path } from 'react-hook-form'
+import type { DefaultValues, FieldValues, Path, UseFormRegisterReturn } from 'react-hook-form'
 import { ApiError } from '../../../lib/api'
 import { zodResolver } from '../../../lib/zodResolver'
 import { createMaster, getMaster, updateMaster } from '../api/masters.api'
-import type { MasterConfig, MasterField, MasterRow } from '../types'
+import { useOptions } from '../hooks/useOptions'
+import type { MasterConfig, MasterField, MasterRow, SelectOption } from '../types'
 
 type Props<Row extends MasterRow, Form extends FieldValues> = {
   config: MasterConfig<Row, Form>
@@ -15,11 +16,38 @@ type Props<Row extends MasterRow, Form extends FieldValues> = {
 }
 
 const inputClass =
-  'mt-1.5 h-10 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none transition-colors focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-soft)] aria-[invalid=true]:border-[var(--color-bad)]'
+  'mt-1.5 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none transition-colors focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-soft)] aria-[invalid=true]:border-[var(--color-bad)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-fg-muted)] read-only:cursor-not-allowed read-only:bg-[var(--color-surface-2)] read-only:text-[var(--color-fg-muted)]'
 
 // Only the fields whose value changed travel in a PATCH, so two admins editing different fields don't overwrite each other.
 function changedFields(next: Record<string, unknown>, base: Record<string, unknown>) {
   return Object.fromEntries(Object.entries(next).filter(([key, value]) => value !== base[key]))
+}
+
+type SelectProps = {
+  id: string
+  field: MasterField
+  register: UseFormRegisterReturn
+  disabled: boolean
+  invalid: boolean
+  describedBy?: string
+  /** The row's current choice, kept selectable even when it is no longer among the active options. */
+  current: SelectOption | null
+}
+
+function SelectInput({ id, field, register, disabled, invalid, describedBy, current }: SelectProps) {
+  const remote = useOptions(field.optionsFrom)
+  const options = [...(field.options ?? []), ...(remote.data ?? [])]
+  if (current && !options.some((o) => o.value === current.value)) options.unshift(current)
+  return (
+    <select id={id} className={`${inputClass} h-10`} aria-invalid={invalid ? true : undefined} aria-describedby={describedBy} disabled={disabled} {...register}>
+      <option value="">{remote.isPending && field.optionsFrom ? 'Loading…' : 'Select…'}</option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
+  )
 }
 
 export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues>({ config, row, onClose, onSaved }: Props<Row, Form>) {
@@ -27,6 +55,13 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
   const [base, setBase] = useState<Row | null>(row)
   const [formError, setFormError] = useState<string | null>(null)
   const [stale, setStale] = useState(false)
+
+  // Fields that cannot change on an existing row (stable codes, built-in rows). Disabled inputs report no value to
+  // react-hook-form, so their stored value is put back before validating.
+  const locked = new Set<string>(base ? [...config.fields.filter((f) => f.immutable).map((f) => f.name), ...(config.rowRules?.lockedFields?.(base) ?? [])] : [])
+  const lockedValues = base ? Object.fromEntries([...locked].map((name) => [name, (config.toFormValues(base) as Record<string, unknown>)[name]])) : {}
+  const validate = zodResolver(config.schema)
+
   const {
     register,
     handleSubmit,
@@ -34,7 +69,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     reset,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
-    resolver: zodResolver(config.schema),
+    resolver: (values, context, options) => validate({ ...values, ...lockedValues }, context, options),
     defaultValues: (row ? config.toFormValues(row) : config.defaultValues) as DefaultValues<Form>,
   })
 
@@ -109,6 +144,8 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     const errorId = `${id}-error`
     const message = (errors as Record<string, { message?: string } | undefined>)[field.name]?.message
     const name = field.name as Path<Form>
+    const isLocked = locked.has(field.name)
+    const hint = isLocked ? (field.kind === 'switch' ? field.hint : (field.lockedHint ?? "Can't be changed after it is created.")) : field.hint
 
     if (field.kind === 'switch') {
       return (
@@ -117,10 +154,57 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
             <label htmlFor={id} className="text-sm font-medium">
               {field.label}
             </label>
-            {field.hint ? <p className="text-xs text-[var(--color-fg-muted)]">{field.hint}</p> : null}
+            {hint ? <p className="text-xs text-[var(--color-fg-muted)]">{isLocked ? `${hint} Built-in, so this can't change.` : hint}</p> : null}
           </div>
-          <input id={id} type="checkbox" role="switch" className="mt-1 h-4 w-4 accent-[var(--color-accent)]" {...register(name)} />
+          <input id={id} type="checkbox" role="switch" disabled={isLocked} className="mt-1 h-4 w-4 accent-[var(--color-accent)]" {...register(name)} />
         </div>
+      )
+    }
+
+    const describedBy = message ? errorId : undefined
+    let input
+    if (field.kind === 'select') {
+      input = (
+        <SelectInput
+          id={id}
+          field={field}
+          register={register(name)}
+          disabled={isLocked}
+          invalid={Boolean(message)}
+          describedBy={describedBy}
+          current={base ? (config.selectedOption?.(base, field.name) ?? null) : null}
+        />
+      )
+    } else if (field.kind === 'textarea') {
+      input = (
+        <textarea
+          id={id}
+          rows={3}
+          placeholder={field.placeholder}
+          maxLength={field.maxLength}
+          readOnly={isLocked}
+          aria-invalid={message ? true : undefined}
+          aria-describedby={describedBy}
+          className={`${inputClass} py-2`}
+          {...register(name)}
+        />
+      )
+    } else {
+      input = (
+        <input
+          id={id}
+          autoFocus={index === 0 && !isLocked}
+          type={field.kind === 'number' ? 'number' : 'text'}
+          inputMode={field.kind === 'number' ? 'numeric' : undefined}
+          placeholder={field.placeholder}
+          maxLength={field.maxLength}
+          autoComplete="off"
+          readOnly={isLocked}
+          aria-invalid={message ? true : undefined}
+          aria-describedby={describedBy}
+          className={`${inputClass} h-10`}
+          {...register(name, field.kind === 'number' ? { valueAsNumber: true } : undefined)}
+        />
       )
     }
 
@@ -129,25 +213,13 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
         <label htmlFor={id} className="text-sm font-medium">
           {field.label}
         </label>
-        <input
-          id={id}
-          autoFocus={index === 0}
-          type={field.kind === 'number' ? 'number' : 'text'}
-          inputMode={field.kind === 'number' ? 'numeric' : undefined}
-          placeholder={field.placeholder}
-          maxLength={field.maxLength}
-          autoComplete="off"
-          aria-invalid={message ? true : undefined}
-          aria-describedby={message ? errorId : undefined}
-          className={inputClass}
-          {...register(name, field.kind === 'number' ? { valueAsNumber: true } : undefined)}
-        />
+        {input}
         {message ? (
           <p id={errorId} role="alert" className="mt-1 text-xs text-[var(--color-bad)]">
             {message}
           </p>
-        ) : field.hint ? (
-          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">{field.hint}</p>
+        ) : hint ? (
+          <p className="mt-1 text-xs text-[var(--color-fg-muted)]">{hint}</p>
         ) : null}
       </div>
     )

@@ -1,12 +1,14 @@
 # GuruConnect — Build Roadmap & Progress Tracker
 
-_Last updated: 2026-10-11 (M07 Country management completed)_
+_Last updated: 2026-10-11_
 
 How to use: when a module's API and screens are finished **and its tests pass**, change `➖` to `✅` in its row (and update the overall column and the summary counts).
 
 **Legend:** ✅ done · 🟡 partly done (see note) · ➖ not started · n/a not applicable to that side
 
 A module counts as **complete** only when *both* its columns are ✅.
+
+> **Admin and mobile modules are numbered separately.** Admin M11 is *Class management*; mobile M11 is *Student registration*. Each table below is its own list.
 
 Two products share one backend (`GuruBackend/`):
 
@@ -21,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **2** | 3 | 0 | 46 | 51 |
+| **Admin web** | **6** | 3 | 0 | 42 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **16** | 9 | 4 | 77 | 106 |
+| **Both together** | **20** | 9 | 4 | 73 | 106 |
 
-Overall: **16 of 106 modules are fully complete** (about 15%). A further 9 have their API built but no screens yet.
+Overall: **20 of 106 modules are fully complete** (about 19%). A further 9 have their API built but no screens yet.
 
 ---
 
@@ -41,14 +43,14 @@ Overall: **16 of 106 modules are fully complete** (about 15%). A further 9 have 
 | M05 | Dynamic payment configuration | ➖ | ➖ | ➖ | |
 | M06 | Referral configuration | ➖ | ➖ | ➖ | |
 | M07 | Country management | ✅ | ✅ | ✅ | List/search/sort/page, create, edit (If-Match), activate, delete (blocked while states use it), restore (super admin), cached dropdown. Also built the shared list pieces M08–M15 reuse: `MasterListPage` + config, `DataTable`, `Pagination`, `StatusSwitch`. |
-| M08 | State management | ➖ | ➖ | ➖ | |
+| M08 | State management | ✅ | ✅ | ✅ | List/search/filter by country and type, create under an active country, edit, activate, delete (blocked while cities/boards/parents use it), restore (not under a deleted country), CSV import (dry-run check, then apply; any bad row rejects the whole file). A state with cities can't move to another country. |
 | M09 | City management | ➖ | ➖ | ➖ | |
 | M10 | Area management | ➖ | ➖ | ➖ | |
-| M11 | Class management | ➖ | ➖ | ➖ | |
+| M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
 | M12 | Subject management | ➖ | ➖ | ➖ | |
 | M13 | Board management | ➖ | ➖ | ➖ | |
-| M14 | Teaching mode management | ➖ | ➖ | ➖ | |
-| M15 | Teacher category management | ➖ | ➖ | ➖ | |
+| M14 | Teaching mode management | ✅ | ✅ | ✅ | List/search, create, edit (code locked), activate, delete (blocked while teachers/children/batches use it), restore. The 5 built-in modes (Online, At teacher's place, Home tuition, Hybrid, Group batch) can be renamed and re-ordered but never removed, deactivated or have the location flag changed. |
+| M15 | Teacher category management | ✅ | ✅ | ✅ | List/search, create (slug generated, fixed after creation), edit, activate (asks first when teachers use it), delete (blocked while teachers/children use it), restore, reorder (first 8 active fill the app home grid). Not done: the icon uploader, because admin file upload (presign) does not exist yet; the API already accepts an uploaded icon and returns its CDN URL. |
 | M16 | Teacher registration queue | ✅ | ➖ | 🟡 | Queue, claim, decisions, approve/reject. Face/name-match checks wait on a vendor. |
 | M17 | Teacher profile management | ➖ | ➖ | ➖ | |
 | M18 | Teacher–subject mapping | ➖ | ➖ | ➖ | |
@@ -153,7 +155,7 @@ Overall: **16 of 106 modules are fully complete** (about 15%). A further 9 have 
 
 Ordered by what unblocks the most:
 
-1. **Admin masters M08–M15** (states, cities, areas, classes, subjects, boards, teaching modes, categories). M07 is done and left the reusable list and form pieces, so each of these is mostly a config file plus its API. The mobile app already reads them, and right now they only change through SQL.
+1. **Admin masters M09, M10, M12, M13** (cities, areas, subjects, boards). M07, M08, M11, M14 and M15 are done and share one backend kernel and one config-driven list page, so each of these is mostly a config file plus its API. The mobile app already reads them, and right now they only change through SQL.
 2. **Admin UI for M02 and M16.** The APIs are done; without screens nobody can review a teacher in the browser.
 3. **Teacher and institute search (mobile M27–M31).** This is what fills the empty parent/student dashboard rails.
 4. **Mobile screens for M10–M13 and M21**, since their APIs already exist.

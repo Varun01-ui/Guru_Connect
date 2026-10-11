@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import type { MasterConfig, MasterRow } from '../types'
+import { countLabel } from './labels'
 
 export type Country = MasterRow & {
+  sortOrder: number
   iso2: string
   iso3: string
   phoneCode: string
@@ -79,7 +81,6 @@ export const countriesConfig: MasterConfig<Country, CountryForm> = {
     { id: 'currency', header: 'Currency', cell: (c) => c.currencyCode },
     { id: 'order', header: 'Order', sortKey: 'sortOrder', align: 'right', cell: (c) => c.sortOrder },
   ],
-  usageCount: (c) => c.stateCount,
-  usageLabel: (n) => (n === 0 ? 'Unused' : `${n} ${n === 1 ? 'state' : 'states'}`),
+  usage: (c) => ({ count: c.stateCount, label: c.stateCount === 0 ? 'Unused' : countLabel(c.stateCount, 'state') }),
   referenceNames: { states: 'states' },
 }

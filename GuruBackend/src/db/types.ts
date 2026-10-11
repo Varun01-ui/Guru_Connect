@@ -261,14 +261,19 @@ export interface DB {
     deleted_by: string | null
   }
   states: {
-    id: string
+    id: Generated<string>
     country_id: string
     name: string
     code: string
     type: Generated<'state' | 'union_territory'>
     is_active: Generated<boolean>
     sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   cities: {
     id: string
@@ -295,13 +300,18 @@ export interface DB {
     deleted_at: Timestamp | null
   }
   classes: {
-    id: string
+    id: Generated<string>
     name: string
     code: string
     stage: string
     level_order: number
     is_active: Generated<boolean>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   boards: {
     id: string
@@ -314,13 +324,19 @@ export interface DB {
     deleted_at: Timestamp | null
   }
   teaching_modes: {
-    id: string
+    id: Generated<string>
     name: string
     code: string
+    description: string | null
     requires_location: Generated<boolean>
-    sort_order: Generated<number>
     is_active: Generated<boolean>
+    sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   subjects: {
     id: string
@@ -333,12 +349,19 @@ export interface DB {
     deleted_at: Timestamp | null
   }
   teacher_categories: {
-    id: string
+    id: Generated<string>
     name: string
     slug: string
+    description: string | null
+    icon_file_id: string | null
     is_active: Generated<boolean>
     sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   parent_child_subjects: {
     child_id: string
