@@ -16,6 +16,7 @@ const NAV: { section: string; items: { to: string; label: string; permission?: s
       { to: '/masters/education/classes', label: 'Classes', permission: 'education_masters.read' },
       { to: '/masters/education/teaching-modes', label: 'Teaching modes', permission: 'education_masters.read' },
       { to: '/masters/education/teacher-categories', label: 'Teacher categories', permission: 'education_masters.read' },
+      { to: '/masters/education/boards', label: 'Boards', permission: 'education_masters.read' },
     ],
   },
 ]

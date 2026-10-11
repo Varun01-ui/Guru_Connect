@@ -276,19 +276,25 @@ export interface DB {
     deleted_by: string | null
   }
   cities: {
-    id: string
+    id: Generated<string>
     state_id: string
     name: string
     slug: string
     latitude: string | null
     longitude: string | null
+    tier: number | null
     is_serviceable: Generated<boolean>
     is_active: Generated<boolean>
     sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   areas: {
-    id: string
+    id: Generated<string>
     city_id: string
     name: string
     slug: string
@@ -297,7 +303,12 @@ export interface DB {
     longitude: string | null
     is_active: Generated<boolean>
     sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   classes: {
     id: Generated<string>
@@ -314,14 +325,19 @@ export interface DB {
     deleted_by: string | null
   }
   boards: {
-    id: string
+    id: Generated<string>
     name: string
     short_name: string
-    type: string
+    type: 'national' | 'state' | 'international' | 'university' | 'other'
     state_id: string | null
-    sort_order: Generated<number>
     is_active: Generated<boolean>
+    sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   teaching_modes: {
     id: Generated<string>
@@ -339,14 +355,24 @@ export interface DB {
     deleted_by: string | null
   }
   subjects: {
-    id: string
+    id: Generated<string>
     name: string
     slug: string
+    category: 'academic' | 'competitive_exam' | 'language' | 'music_arts' | 'coding_skills' | 'other'
+    parent_subject_id: string | null
+    aliases: Generated<string[]>
+    icon_file_id: string | null
     min_class_order: number | null
     max_class_order: number | null
+    is_trending: Generated<boolean>
     is_active: Generated<boolean>
     sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   teacher_categories: {
     id: Generated<string>

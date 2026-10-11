@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import type { DefaultValues, FieldValues, Path, UseFormRegisterReturn } from 'react-hook-form'
 import { ApiError } from '../../../lib/api'
 import { zodResolver } from '../../../lib/zodResolver'
@@ -67,11 +67,15 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     handleSubmit,
     setError,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: (values, context, options) => validate({ ...values, ...lockedValues }, context, options),
     defaultValues: (row ? config.toFormValues(row) : config.defaultValues) as DefaultValues<Form>,
   })
+
+  const current = useWatch({ control }) as Record<string, unknown>
+  const isShown = (field: MasterField) => !field.showWhen || String(current[field.showWhen.field] ?? '') === field.showWhen.equals
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -243,7 +247,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
         </h2>
 
         <form className="mt-5 space-y-4" onSubmit={onSubmit} noValidate>
-          {config.fields.map(renderField)}
+          {config.fields.filter(isShown).map(renderField)}
 
           {formError ? (
             <div role="alert" className="rounded-lg bg-[var(--color-bad-soft)] px-3 py-2.5 text-sm text-[var(--color-bad)]">

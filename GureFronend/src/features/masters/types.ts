@@ -29,6 +29,8 @@ export type MasterField = {
   optionsFrom?: string
   /** Fixed once the row exists (stable codes the apps key on): shown, but not editable. */
   immutable?: boolean
+  /** Only shown while another field has this value (e.g. the state of a board is only asked for state boards). */
+  showWhen?: { field: string; equals: string }
   /** What to say when the field is locked on this row (default: it can't be changed after creation). */
   lockedHint?: string
 }

@@ -12,6 +12,7 @@ import { countriesConfig } from '../features/masters/config/countries.config'
 import { teachingModesConfig } from '../features/masters/config/teachingModes.config'
 import { teacherCategoriesConfig } from '../features/masters/config/teacherCategories.config'
 import { statesConfig } from '../features/masters/config/states.config'
+import { boardsConfig } from '../features/masters/config/boards.config'
 import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
@@ -75,6 +76,16 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <MasterListPage config={statesConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/education/boards',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={boardsConfig} />
         </AppShell>
       </RequireAuth>
     ),

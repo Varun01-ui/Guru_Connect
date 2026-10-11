@@ -9,7 +9,7 @@ import { countReferences } from './references.js'
 
 export type { Ctx }
 
-export type MasterTable = 'countries' | 'states' | 'classes' | 'teaching_modes' | 'teacher_categories'
+export type MasterTable = 'countries' | 'states' | 'cities' | 'areas' | 'classes' | 'subjects' | 'boards' | 'teaching_modes' | 'teacher_categories'
 
 export type BaseRow = { id: string; is_active: boolean; updated_at: Date; deleted_at: Date | null }
 export type BaseView = { id: string; isActive: boolean; updatedAt: string; deletedAt: string | null }

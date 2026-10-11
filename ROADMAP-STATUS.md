@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **6** | 3 | 0 | 42 | 51 |
+| **Admin web** | **7** | 3 | 0 | 41 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **20** | 9 | 4 | 73 | 106 |
+| **Both together** | **21** | 9 | 4 | 72 | 106 |
 
-Overall: **20 of 106 modules are fully complete** (about 19%). A further 9 have their API built but no screens yet.
+Overall: **21 of 106 modules are fully complete** (about 20%). A further 9 have their API built but no screens yet.
 
 ---
 
@@ -48,7 +48,7 @@ Overall: **20 of 106 modules are fully complete** (about 19%). A further 9 have 
 | M10 | Area management | ➖ | ➖ | ➖ | |
 | M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
 | M12 | Subject management | ➖ | ➖ | ➖ | |
-| M13 | Board management | ➖ | ➖ | ➖ | |
+| M13 | Board management | ✅ | ✅ | ✅ | List/search/filter by type and state, create (a state board needs an active state, any other board has none), edit, activate, delete (blocked while teacher class mappings, children or students use it), restore. The state field only appears for state boards. |
 | M14 | Teaching mode management | ✅ | ✅ | ✅ | List/search, create, edit (code locked), activate, delete (blocked while teachers/children/batches use it), restore. The 5 built-in modes (Online, At teacher's place, Home tuition, Hybrid, Group batch) can be renamed and re-ordered but never removed, deactivated or have the location flag changed. |
 | M15 | Teacher category management | ✅ | ✅ | ✅ | List/search, create (slug generated, fixed after creation), edit, activate (asks first when teachers use it), delete (blocked while teachers/children use it), restore, reorder (first 8 active fill the app home grid). Not done: the icon uploader, because admin file upload (presign) does not exist yet; the API already accepts an uploaded icon and returns its CDN URL. |
 | M16 | Teacher registration queue | ✅ | ➖ | 🟡 | Queue, claim, decisions, approve/reject. Face/name-match checks wait on a vendor. |
