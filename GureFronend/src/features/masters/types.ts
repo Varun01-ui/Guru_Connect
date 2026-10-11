@@ -27,8 +27,12 @@ export type MasterField = {
   options?: SelectOption[]
   /** API path of another master whose active rows (`?active=true&fields=id,name`) fill a select, e.g. '/countries'. */
   optionsFrom?: string
+  /** Use this field of the master as each option's value instead of its id (e.g. 'levelOrder' for classes). */
+  optionsValueKey?: string
   /** Fixed once the row exists (stable codes the apps key on): shown, but not editable. */
   immutable?: boolean
+  /** Only shown while another field has this value (e.g. the state of a board is only asked for state boards). */
+  showWhen?: { field: string; equals: string }
   /** What to say when the field is locked on this row (default: it can't be changed after creation). */
   lockedHint?: string
 }
@@ -40,6 +44,7 @@ export type MasterFilter = {
   allLabel?: string
   options?: SelectOption[]
   optionsFrom?: string
+  optionsValueKey?: string
 }
 
 export type MasterColumn<Row> = {
@@ -83,10 +88,20 @@ export type MasterConfig<Row extends MasterRow, Form extends FieldValues> = {
     /** Field names that cannot be edited on this row. */
     lockedFields?: (row: Row) => string[]
   }
+  /**
+   * Runs just before a save: return a sentence to make the admin confirm first (e.g. the counts behind "mark as a launch
+   * city"), or null to save at once. `payload` is the whole body for a create and only the changed fields for an edit.
+   */
+  confirmSave?: (args: { row: Row | null; payload: Record<string, unknown> }) => Promise<string | null>
   /** Returns a sentence when switching this row off needs confirming first (e.g. how many teachers it affects). */
   confirmDeactivate?: (row: Row) => string | null
   /** Enables a "Reorder" dialog backed by PUT <apiPath>/order. `sort` is the list order that shows the current sequence. */
   reorder?: { sort: SortKey; warning?: string }
-  /** Enables a CSV import dialog backed by POST <apiPath>/import. */
-  importCsv?: { columns: string; example: string }
+  /** Enables a CSV import dialog backed by POST <apiPath>/import. `allowSkipInvalid` adds a "skip invalid rows" tick. */
+  importCsv?: { columns: string; example: string; allowSkipInvalid?: boolean }
+  /**
+   * Enables a "Merge" row action backed by POST <apiPath>/<id>/merge. `targetKey` is the body field that names the row to
+   * merge into; `scope` limits the choices (areas can only merge within their city).
+   */
+  merge?: { targetKey: string; scope?: (row: Row) => Record<string, string>; warning: string }
 }

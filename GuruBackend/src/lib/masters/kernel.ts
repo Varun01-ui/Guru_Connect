@@ -9,7 +9,7 @@ import { countReferences } from './references.js'
 
 export type { Ctx }
 
-export type MasterTable = 'countries' | 'states' | 'classes' | 'teaching_modes' | 'teacher_categories'
+export type MasterTable = 'countries' | 'states' | 'cities' | 'areas' | 'classes' | 'subjects' | 'boards' | 'teaching_modes' | 'teacher_categories'
 
 export type BaseRow = { id: string; is_active: boolean; updated_at: Date; deleted_at: Date | null }
 export type BaseView = { id: string; isActive: boolean; updatedAt: string; deletedAt: string | null }
@@ -37,6 +37,8 @@ export type MasterDef<Row extends BaseRow, View extends BaseView> = {
   mapDuplicate: (error: unknown) => unknown
   guardDeactivate?: (row: Row) => void
   guardDelete?: (row: Row) => void
+  /** References that aren't foreign keys (e.g. ids stored in an array column), counted with the discovered ones when deleting. */
+  extraReferences?: (executor: Kysely<DB>, id: string) => Promise<Record<string, number>>
   /** Runs inside the restore transaction, e.g. to refuse restoring a child of a deleted parent. */
   guardRestore?: (executor: Kysely<DB>, row: Row) => Promise<void> | void
 }
@@ -60,6 +62,9 @@ export const inUseError = (noun: string, references: Record<string, number>) =>
   new ApiError(409, 'CONFLICT_IN_USE', `This ${noun} is in use. Deactivate it instead.`, { references })
 
 export const duplicateError = (message: string, field: string) => new ApiError(409, 'CONFLICT_DUPLICATE', message, { field })
+
+// Arrays (PIN codes, aliases) are values, not identities: the same items in the same order are no change.
+const sameValue = (a: unknown, b: unknown) => a === b || (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => x === b[i]))
 
 const withMappedDuplicates = <T>(def: { mapDuplicate: (e: unknown) => unknown }, run: () => Promise<T>) =>
   run().catch((e) => {
@@ -93,7 +98,7 @@ export async function patchMaster<Row extends BaseRow, View extends BaseView>(
       const before = def.present(row)
       if (row.updated_at.getTime() !== version.getTime()) throw staleError(def.noun, before)
 
-      const changes = Object.fromEntries(Object.entries(input).filter(([k, v]) => v !== undefined && v !== (before as Record<string, unknown>)[k]))
+      const changes = Object.fromEntries(Object.entries(input).filter(([k, v]) => v !== undefined && !sameValue(v, (before as Record<string, unknown>)[k])))
       if (Object.keys(changes).length === 0) return before
 
       await options.validate?.(trx, row, before, changes)
@@ -141,7 +146,8 @@ export async function deleteMaster<Row extends BaseRow, View extends BaseView>(d
     // The row lock also blocks a concurrent insert of a referencing row (its FK check takes a share lock on this row).
     const row = await def.load(trx, id, { lock: true })
     def.guardDelete?.(row)
-    const references = await countReferences(trx, def.table, id)
+    const references = { ...(await countReferences(trx, def.table, id)), ...(await def.extraReferences?.(trx, id)) }
+    for (const key of Object.keys(references)) if (references[key] === 0) delete references[key]
     if (Object.keys(references).length > 0) throw inUseError(def.noun, references)
     await update(trx, def.table, id, { deleted_at: sql`now()`, deleted_by: ctx.actor.id, updated_by: ctx.actor.id })
     await audit(trx, { ...auditBase(ctx, def, id), action: `${def.auditPrefix}.deleted`, oldValues: def.snapshot(def.present(row)) })

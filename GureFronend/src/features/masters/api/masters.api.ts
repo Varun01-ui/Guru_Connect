@@ -23,10 +23,23 @@ export function listMasters<Row extends MasterRow>(apiPath: string, params: List
   return apiFetchPage<Row[]>(`${apiPath}?${qs}`)
 }
 
-// Active rows of a master as select options (dropdown mode, cached server-side for 10 minutes).
-export async function fetchOptions(apiPath: string): Promise<SelectOption[]> {
-  const rows = await apiFetch<{ id: string; name: string }[]>(`${apiPath}?active=true&fields=id,name`)
+// Active rows of a master as select options (dropdown mode, cached server-side for 10 minutes). `valueKey` picks which
+// field becomes the option's value; it defaults to the id.
+export async function fetchOptions(apiPath: string, valueKey = 'id'): Promise<SelectOption[]> {
+  const fields = valueKey === 'id' ? 'id,name' : `id,name,${valueKey}`
+  const rows = await apiFetch<Record<string, unknown>[]>(`${apiPath}?active=true&fields=${fields}`)
+  return rows.map((r) => ({ value: String(r[valueKey]), label: String(r.name) }))
+}
+
+// Every live row of a master (active or not) as select options, optionally limited to a parent: ?cityId=... .
+export async function fetchScopedOptions(apiPath: string, scope: Record<string, string> = {}): Promise<SelectOption[]> {
+  const qs = new URLSearchParams({ fields: 'id,name', ...scope })
+  const rows = await apiFetch<{ id: string; name: string }[]>(`${apiPath}?${qs}`)
   return rows.map((r) => ({ value: r.id, label: r.name }))
+}
+
+export function mergeMaster(apiPath: string, id: string, targetKey: string, targetId: string, reason?: string) {
+  return apiFetch<{ moved: Record<string, number> }>(`${apiPath}/${id}/merge`, { method: 'POST', body: JSON.stringify({ [targetKey]: targetId, ...(reason ? { reason } : {}) }) })
 }
 
 export function getMaster<Row extends MasterRow>(apiPath: string, id: string) {
@@ -66,6 +79,11 @@ export type ImportResult = {
 }
 
 // CSV goes up as text/csv; with dryRun the API validates the whole file and reports what would happen, writing nothing.
-export function importMasters(apiPath: string, csv: string, dryRun: boolean) {
-  return apiFetch<ImportResult>(`${apiPath}/import${dryRun ? '?dryRun=true' : ''}`, { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv' } })
+// With skipInvalid, bad rows are reported as skipped instead of rejecting the whole file.
+export function importMasters(apiPath: string, csv: string, dryRun: boolean, skipInvalid = false) {
+  const qs = new URLSearchParams()
+  if (dryRun) qs.set('dryRun', 'true')
+  if (skipInvalid) qs.set('skipInvalid', 'true')
+  const query = qs.toString()
+  return apiFetch<ImportResult>(`${apiPath}/import${query ? `?${query}` : ''}`, { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv' } })
 }

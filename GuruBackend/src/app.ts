@@ -17,6 +17,10 @@ import { rbacRouter } from './modules/rbac/rbac.routes.js'
 import { teacherVerificationRouter } from './modules/teacherVerification/tv.routes.js'
 import { countriesRouter } from './modules/countries/countries.routes.js'
 import { classesRouter } from './modules/classes/classes.routes.js'
+import { subjectsRouter } from './modules/subjects/subjects.routes.js'
+import { areasRouter } from './modules/areas/areas.routes.js'
+import { citiesRouter } from './modules/cities/cities.routes.js'
+import { boardsRouter } from './modules/boards/boards.routes.js'
 import { statesRouter } from './modules/states/states.routes.js'
 import { teacherCategoriesRouter } from './modules/teacherCategories/teacherCategories.routes.js'
 import { teachingModesRouter } from './modules/teachingModes/teachingModes.routes.js'
@@ -43,6 +47,10 @@ export function createApp() {
   app.use('/api/v1/admin', teacherVerificationRouter)
   app.use('/api/v1/admin', countriesRouter)
   app.use('/api/v1/admin', classesRouter)
+  app.use('/api/v1/admin', subjectsRouter)
+  app.use('/api/v1/admin', areasRouter)
+  app.use('/api/v1/admin', citiesRouter)
+  app.use('/api/v1/admin', boardsRouter)
   app.use('/api/v1/admin', statesRouter)
   app.use('/api/v1/admin', teacherCategoriesRouter)
   app.use('/api/v1/admin', teachingModesRouter)

@@ -7,11 +7,19 @@ import { AcceptInvitePage } from '../features/auth/pages/AcceptInvitePage'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage'
 import { SessionsPage } from '../features/auth/pages/SessionsPage'
+import { AdminDetailPage } from '../features/rbac/pages/AdminDetailPage'
+import { AdminsListPage } from '../features/rbac/pages/AdminsListPage'
+import { RoleEditorPage } from '../features/rbac/pages/RoleEditorPage'
+import { RolesListPage } from '../features/rbac/pages/RolesListPage'
 import { classesConfig } from '../features/masters/config/classes.config'
 import { countriesConfig } from '../features/masters/config/countries.config'
 import { teachingModesConfig } from '../features/masters/config/teachingModes.config'
 import { teacherCategoriesConfig } from '../features/masters/config/teacherCategories.config'
 import { statesConfig } from '../features/masters/config/states.config'
+import { boardsConfig } from '../features/masters/config/boards.config'
+import { citiesConfig } from '../features/masters/config/cities.config'
+import { areasConfig } from '../features/masters/config/areas.config'
+import { subjectsConfig } from '../features/masters/config/subjects.config'
 import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
@@ -75,6 +83,96 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <MasterListPage config={statesConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/education/boards',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={boardsConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/roles',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <RolesListPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/roles/new',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <RoleEditorPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/roles/:id',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <RoleEditorPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/admins',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <AdminsListPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/admins/:id',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <AdminDetailPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/locations/cities',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={citiesConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/locations/areas',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={areasConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/education/subjects',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={subjectsConfig} />
         </AppShell>
       </RequireAuth>
     ),

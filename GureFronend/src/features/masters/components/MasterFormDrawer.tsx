@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import type { DefaultValues, FieldValues, Path, UseFormRegisterReturn } from 'react-hook-form'
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog'
 import { ApiError } from '../../../lib/api'
 import { zodResolver } from '../../../lib/zodResolver'
 import { createMaster, getMaster, updateMaster } from '../api/masters.api'
@@ -18,9 +19,12 @@ type Props<Row extends MasterRow, Form extends FieldValues> = {
 const inputClass =
   'mt-1.5 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none transition-colors focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-soft)] aria-[invalid=true]:border-[var(--color-bad)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-fg-muted)] read-only:cursor-not-allowed read-only:bg-[var(--color-surface-2)] read-only:text-[var(--color-fg-muted)]'
 
+// Lists (PIN codes) are values: the same items in the same order are no change.
+const sameValue = (a: unknown, b: unknown) => a === b || (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => x === b[i]))
+
 // Only the fields whose value changed travel in a PATCH, so two admins editing different fields don't overwrite each other.
 function changedFields(next: Record<string, unknown>, base: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(next).filter(([key, value]) => value !== base[key]))
+  return Object.fromEntries(Object.entries(next).filter(([key, value]) => !sameValue(value, base[key])))
 }
 
 type SelectProps = {
@@ -35,7 +39,7 @@ type SelectProps = {
 }
 
 function SelectInput({ id, field, register, disabled, invalid, describedBy, current }: SelectProps) {
-  const remote = useOptions(field.optionsFrom)
+  const remote = useOptions(field.optionsFrom, field.optionsValueKey)
   const options = [...(field.options ?? []), ...(remote.data ?? [])]
   if (current && !options.some((o) => o.value === current.value)) options.unshift(current)
   return (
@@ -55,6 +59,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
   const [base, setBase] = useState<Row | null>(row)
   const [formError, setFormError] = useState<string | null>(null)
   const [stale, setStale] = useState(false)
+  const [pendingConfirm, setPendingConfirm] = useState<string | null>(null)
 
   // Fields that cannot change on an existing row (stable codes, built-in rows). Disabled inputs report no value to
   // react-hook-form, so their stored value is put back before validating.
@@ -67,11 +72,15 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     handleSubmit,
     setError,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: (values, context, options) => validate({ ...values, ...lockedValues }, context, options),
     defaultValues: (row ? config.toFormValues(row) : config.defaultValues) as DefaultValues<Form>,
   })
+
+  const current = useWatch({ control }) as Record<string, unknown>
+  const isShown = (field: MasterField) => !field.showWhen || String(current[field.showWhen.field] ?? '') === field.showWhen.equals
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -105,26 +114,34 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
       }
     }
     if (error.code === 'VERSION_CONFLICT') setStale(true)
-    setFormError(error.message)
+    // A full list (e.g. 10 trending subjects) names what is in it, so the admin can pick one to swap out.
+    const full = (error.details as { trending?: { name: string }[] } | undefined)?.trending
+    setFormError(Array.isArray(full) && full.length > 0 ? `${error.message} Currently trending: ${full.map((t) => t.name).join(', ')}.` : error.message)
   }
 
-  const onSubmit = handleSubmit(async (values) => {
-    setFormError(null)
-    try {
-      if (!base) {
-        onSaved(await createMaster<Row>(config.apiPath, config.toPayload(values)), 'created')
-        return
+  // `skipConfirm` is true when the admin has just said yes to the confirmSave question.
+  const submit = (skipConfirm: boolean) =>
+    handleSubmit(async (values) => {
+      setFormError(null)
+      try {
+        const payload = base ? changedFields(config.toPayload(values), config.toPayload(config.toFormValues(base))) : config.toPayload(values)
+        if (base && Object.keys(payload).length === 0) {
+          onClose()
+          return
+        }
+        if (!skipConfirm) {
+          const message = await config.confirmSave?.({ row: base, payload })
+          if (message) {
+            setPendingConfirm(message)
+            return
+          }
+        }
+        if (!base) onSaved(await createMaster<Row>(config.apiPath, payload), 'created')
+        else onSaved(await updateMaster<Row>(config.apiPath, base.id, payload, base.updatedAt), 'updated')
+      } catch (error) {
+        showApiError(error)
       }
-      const payload = changedFields(config.toPayload(values), config.toPayload(config.toFormValues(base)))
-      if (Object.keys(payload).length === 0) {
-        onClose()
-        return
-      }
-      onSaved(await updateMaster<Row>(config.apiPath, base.id, payload, base.updatedAt), 'updated')
-    } catch (error) {
-      showApiError(error)
-    }
-  })
+    })
 
   async function reload() {
     if (!base) return
@@ -242,8 +259,8 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
           {base ? `Edit ${config.singular}` : `Add ${config.singular}`}
         </h2>
 
-        <form className="mt-5 space-y-4" onSubmit={onSubmit} noValidate>
-          {config.fields.map(renderField)}
+        <form className="mt-5 space-y-4" onSubmit={submit(false)} noValidate>
+          {config.fields.filter(isShown).map(renderField)}
 
           {formError ? (
             <div role="alert" className="rounded-lg bg-[var(--color-bad-soft)] px-3 py-2.5 text-sm text-[var(--color-bad)]">
@@ -274,6 +291,19 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
             </button>
           </div>
         </form>
+
+        {pendingConfirm ? (
+          <ConfirmDialog
+            title={base ? `Save changes to ${base.name}?` : `Add this ${config.singular}?`}
+            message={pendingConfirm}
+            confirmLabel="Yes, continue"
+            onCancel={() => setPendingConfirm(null)}
+            onConfirm={() => {
+              setPendingConfirm(null)
+              void submit(true)()
+            }}
+          />
+        ) : null}
       </aside>
     </div>
   )

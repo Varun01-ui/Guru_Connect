@@ -24,6 +24,7 @@ export function ImportCsvDialog<Row extends MasterRow, Form extends FieldValues>
   const [checked, setChecked] = useState<ImportResult | null>(null)
   const [problems, setProblems] = useState<RowProblem[]>([])
   const [busy, setBusy] = useState<'check' | 'apply' | null>(null)
+  const [skipInvalid, setSkipInvalid] = useState(false)
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -48,7 +49,7 @@ export function ImportCsvDialog<Row extends MasterRow, Form extends FieldValues>
     setBusy(dryRun ? 'check' : 'apply')
     setProblems([])
     try {
-      const result = await importMasters(config.apiPath, csv, dryRun)
+      const result = await importMasters(config.apiPath, csv, dryRun, skipInvalid)
       if (dryRun) setChecked(result)
       else onImported(result)
     } catch (e) {
@@ -77,7 +78,7 @@ export function ImportCsvDialog<Row extends MasterRow, Form extends FieldValues>
           Import {config.plural} from CSV
         </h2>
         <p className="mt-1 text-sm text-[var(--color-fg-muted)]">
-          Columns: <span className="font-mono text-xs">{config.importCsv?.columns}</span>. Up to 500 rows. Rows that already exist are skipped.
+          Columns: <span className="font-mono text-xs">{config.importCsv?.columns}</span>. Rows that already exist are skipped.
         </p>
 
         <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto">
@@ -96,6 +97,22 @@ export function ImportCsvDialog<Row extends MasterRow, Form extends FieldValues>
               className="mt-1.5 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 font-mono text-xs outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-soft)]"
             />
           </label>
+
+          {config.importCsv?.allowSkipInvalid ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={skipInvalid}
+                onChange={(e) => {
+                  setSkipInvalid(e.target.checked)
+                  setChecked(null)
+                  setProblems([])
+                }}
+                className="h-4 w-4 accent-[var(--color-accent)]"
+              />
+              Skip invalid rows and import the rest
+            </label>
+          ) : null}
 
           {problems.length > 0 ? (
             <div role="alert" className="rounded-lg bg-[var(--color-bad-soft)] px-3 py-2.5 text-sm text-[var(--color-bad)]">
@@ -116,7 +133,7 @@ export function ImportCsvDialog<Row extends MasterRow, Form extends FieldValues>
           {checked ? (
             <div role="status" className="rounded-lg bg-[var(--color-good-soft)] px-3 py-2.5 text-sm text-[var(--color-good)]">
               <p className="font-semibold">
-                {checked.created.length} to add, {checked.skipped.length} already exist (skipped), out of {checked.total} rows.
+                {checked.created.length} to add, {checked.skipped.length} skipped, out of {checked.total} rows.
               </p>
               {checked.skipped.length > 0 ? (
                 <ul className="mt-1.5 list-disc pl-5 text-xs">
