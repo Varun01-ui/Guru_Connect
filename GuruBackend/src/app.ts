@@ -15,6 +15,7 @@ import { authRouter } from './modules/auth/auth.routes.js'
 import { healthRouter } from './modules/health/health.routes.js'
 import { rbacRouter } from './modules/rbac/rbac.routes.js'
 import { teacherVerificationRouter } from './modules/teacherVerification/tv.routes.js'
+import { countriesRouter } from './modules/countries/countries.routes.js'
 
 export function createApp() {
   const app = express()
@@ -36,6 +37,7 @@ export function createApp() {
   app.use('/api/v1/admin', authRouter)
   app.use('/api/v1/admin', rbacRouter)
   app.use('/api/v1/admin', teacherVerificationRouter)
+  app.use('/api/v1/admin', countriesRouter)
   app.use('/api/v1/app', mobileAppRouter)
 
   app.use(errorHandler)

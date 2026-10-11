@@ -1,8 +1,15 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { IconLock, IconLogOut, IconShieldCheck } from '../components/icons'
 import { logout } from '../features/auth/api/auth.api'
 import { useAuth } from '../features/auth/authStore'
+import { usePermissions } from '../features/auth/usePermissions'
+
+// Sidebar entries grow one line per module as each ships (04-react-app-structure.md has the full map).
+const NAV: { section: string; items: { to: string; label: string; permission?: string; end?: boolean }[] }[] = [
+  { section: 'Overview', items: [{ to: '/', label: 'Dashboard', end: true }] },
+  { section: 'Masters', items: [{ to: '/masters/locations/countries', label: 'Countries', permission: 'locations.read' }] },
+]
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/)
@@ -11,6 +18,7 @@ function initials(name: string): string {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { admin } = useAuth()
+  const { can } = usePermissions()
 
   return (
     <div className="flex min-h-screen bg-[var(--color-bg)]">
@@ -25,9 +33,31 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <div className="flex-1 px-4 py-2 text-sm text-[var(--color-navy-ink-muted)]">
-          Module navigation appears here as each module ships.
-        </div>
+        <nav aria-label="Main" className="flex-1 space-y-5 overflow-y-auto px-3 py-2">
+          {NAV.map((group) => {
+            const items = group.items.filter((item) => !item.permission || can(item.permission))
+            if (items.length === 0) return null
+            return (
+              <div key={group.section}>
+                <div className="px-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-[var(--color-navy-ink-muted)]">{group.section}</div>
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `block rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors ${
+                        isActive ? 'bg-[var(--color-navy-2)] text-white' : 'text-[var(--color-navy-ink)] hover:bg-[var(--color-navy-2)]/60 hover:text-white'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            )
+          })}
+        </nav>
 
         {admin ? (
           <div className="m-3 flex items-center gap-2.5 rounded-xl bg-[var(--color-navy-2)] p-3">
