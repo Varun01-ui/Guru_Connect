@@ -19,6 +19,7 @@ import { teacherAvailabilityRouter } from './teacherAvailability/availability.ro
 import { teacherProfileRouter } from './teacherProfile/profile.routes.js'
 import { instituteRouter } from './institute/institute.routes.js'
 import { teacherDashboardRouter } from './teacherDashboard/dashboard.routes.js'
+import { pricingRouter } from './pricing/pricing.routes.js'
 import { appBannersRouter } from './banners/banners.routes.js'
 import { publicSettingsRouter } from './settings/settings.routes.js'
 import { maintenanceGate } from '../../middleware/maintenanceGate.js'
@@ -31,6 +32,7 @@ mobileAppRouter.use(maintenanceGate)
 mobileAppRouter.use(bootstrapRouter)
 mobileAppRouter.use(publicSettingsRouter)
 mobileAppRouter.use(appBannersRouter)
+mobileAppRouter.use(pricingRouter)
 mobileAppRouter.use(platformRouter)
 mobileAppRouter.use(appAuthRouter)
 mobileAppRouter.use(registrationRouter)
