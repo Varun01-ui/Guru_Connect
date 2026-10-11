@@ -9,6 +9,8 @@ import { pinoHttp } from 'pino-http'
 import { env } from './config/env.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { storageIsConfigured } from './lib/storage.js'
+import { profileRouter } from './modules/profile/profile.routes.js'
+import { adminUploadsRouter } from './modules/adminUploads/adminUploads.routes.js'
 import { settingsRouter } from './modules/settings/settings.routes.js'
 import { mobileAppRouter } from './modules/app/router.js'
 import { devCdnRouter } from './modules/app/uploads/devStorage.routes.js'
@@ -56,6 +58,8 @@ export function createApp() {
   app.use('/api/v1/admin', teacherCategoriesRouter)
   app.use('/api/v1/admin', teachingModesRouter)
   app.use('/api/v1/admin', settingsRouter)
+  app.use('/api/v1/admin', profileRouter)
+  app.use('/api/v1/admin', adminUploadsRouter)
   app.use('/api/v1/app', mobileAppRouter)
 
   app.use(errorHandler)

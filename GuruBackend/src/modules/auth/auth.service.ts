@@ -19,6 +19,7 @@ import {
 import { signAccessToken } from '../../lib/jwt.js'
 import { generateOtpCode, toIndianE164 } from '../../lib/otp.js'
 import { hashPassword, verifyPassword } from '../../lib/password.js'
+import { cdnUrl } from '../../lib/present.js'
 import { passwordPolicyIssues } from '../../lib/passwordPolicy.js'
 import { getEffectivePermissions } from '../../lib/permissions.js'
 import { hitRateLimit } from '../../lib/rateLimit.js'
@@ -304,6 +305,9 @@ export async function me(adminId: string) {
     .orderBy('r.name')
     .execute()
   const permissions = await getEffectivePermissions(admin.id, admin.is_super_admin)
+  const avatar = profile?.avatar_file_id
+    ? await db.selectFrom('files').select('object_key').where('id', '=', profile.avatar_file_id).where('status', '=', 'uploaded').where('deleted_at', 'is', null).executeTakeFirst()
+    : undefined
   // Changes whenever the admin's roles or permissions do, so open tabs can poll `/auth/me?etag=` cheaply (FR-2.4).
   const etag = createHash('sha256').update(JSON.stringify([admin.is_super_admin, roles.map((r) => r.code), permissions])).digest('hex').slice(0, 16)
 
@@ -319,7 +323,7 @@ export async function me(adminId: string) {
       displayName: profile?.display_name ?? admin.full_name,
       timezone: profile?.timezone ?? 'Asia/Kolkata',
       theme: profile?.theme ?? 'system',
-      avatarUrl: null,
+      avatarUrl: cdnUrl(avatar?.object_key),
     },
   }
 }

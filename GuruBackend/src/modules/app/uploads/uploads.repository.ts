@@ -3,6 +3,7 @@ import { db } from '../../../db/index.js'
 import type { DB } from '../../../db/types.js'
 
 type Executor = Kysely<DB>
+export type OwnerType = 'app_user' | 'admin'
 
 export type FileRow = {
   id: string
@@ -24,7 +25,7 @@ const columns = ['id', 'bucket', 'object_key', 'original_name', 'mime_type', 'si
 
 export function insertPendingFile(
   executor: Executor,
-  values: { bucket: string; objectKey: string; originalName: string; mimeType: string; sizeBytes: number; visibility: 'public' | 'private'; purpose: string; userId: string },
+  values: { bucket: string; objectKey: string; originalName: string; mimeType: string; sizeBytes: number; visibility: 'public' | 'private'; purpose: string; userId: string; ownerType?: OwnerType },
 ) {
   return executor
     .insertInto('files')
@@ -37,7 +38,7 @@ export function insertPendingFile(
       size_bytes: values.sizeBytes,
       visibility: values.visibility,
       purpose: values.purpose,
-      uploaded_by_type: 'app_user',
+      uploaded_by_type: values.ownerType ?? 'app_user',
       uploaded_by_id: values.userId,
       status: 'pending',
     })
@@ -45,11 +46,11 @@ export function insertPendingFile(
     .executeTakeFirstOrThrow() as Promise<FileRow>
 }
 
-export async function countPendingFiles(userId: string, executor: Executor = db): Promise<number> {
+export async function countPendingFiles(userId: string, executor: Executor = db, ownerType: OwnerType = 'app_user'): Promise<number> {
   const row = await executor
     .selectFrom('files')
     .select(db.fn.countAll<string>().as('n'))
-    .where('uploaded_by_type', '=', 'app_user')
+    .where('uploaded_by_type', '=', ownerType)
     .where('uploaded_by_id', '=', userId)
     .where('status', '=', 'pending')
     .where('deleted_at', 'is', null)
@@ -58,12 +59,12 @@ export async function countPendingFiles(userId: string, executor: Executor = db)
 }
 
 // Scoped to the uploader: someone else's file id is indistinguishable from a missing one.
-export function findOwnFile(fileId: string, userId: string, executor: Executor = db): Promise<FileRow | undefined> {
+export function findOwnFile(fileId: string, userId: string, executor: Executor = db, ownerType: OwnerType = 'app_user'): Promise<FileRow | undefined> {
   return executor
     .selectFrom('files')
     .select(columns)
     .where('id', '=', fileId)
-    .where('uploaded_by_type', '=', 'app_user')
+    .where('uploaded_by_type', '=', ownerType)
     .where('uploaded_by_id', '=', userId)
     .where('deleted_at', 'is', null)
     .executeTakeFirst() as Promise<FileRow | undefined>
