@@ -2,7 +2,7 @@
 
 _Last updated: 2026-10-11_
 
-How to use: when a module's API and screens are finished **and its tests pass**, change `➖` to `✅` in its row (and update the overall column and the summary counts).
+How to use: when a module's API and screens are finished **and its tests pass**, change `➖` to `✅` in its row (and update the overall column and the summary counts), then run `node scripts/syncRoadmap.mjs` to carry the ticks into the **Status** column of the *Implementation order* table in `README.md` (the repo's front page on GitHub).
 
 **Legend:** ✅ done · 🟡 partly done (see note) · ➖ not started · n/a not applicable to that side
 
