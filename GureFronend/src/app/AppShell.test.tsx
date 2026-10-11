@@ -41,6 +41,12 @@ describe('AppShell sidebar', () => {
     expect(screen.queryByRole('link', { name: 'Countries' })).toBeNull()
   })
 
+  it('links every education master with the education masters permission', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: (key) => key === 'education_masters.read' })
+    renderShell()
+    expect(screen.getByRole('link', { name: 'Teaching modes' })).toHaveAttribute('href', '/masters/education/teaching-modes')
+  })
+
   it('hides Countries, and its whole Masters group, from an admin without the permission', () => {
     vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: () => false })
     renderShell()

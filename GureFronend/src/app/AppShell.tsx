@@ -13,6 +13,7 @@ const NAV: { section: string; items: { to: string; label: string; permission?: s
     items: [
       { to: '/masters/locations/countries', label: 'Countries', permission: 'locations.read' },
       { to: '/masters/education/classes', label: 'Classes', permission: 'education_masters.read' },
+      { to: '/masters/education/teaching-modes', label: 'Teaching modes', permission: 'education_masters.read' },
     ],
   },
 ]

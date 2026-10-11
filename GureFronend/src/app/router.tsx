@@ -9,6 +9,7 @@ import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage'
 import { SessionsPage } from '../features/auth/pages/SessionsPage'
 import { classesConfig } from '../features/masters/config/classes.config'
 import { countriesConfig } from '../features/masters/config/countries.config'
+import { teachingModesConfig } from '../features/masters/config/teachingModes.config'
 import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
@@ -42,6 +43,16 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <MasterListPage config={classesConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/education/teaching-modes',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={teachingModesConfig} />
         </AppShell>
       </RequireAuth>
     ),
