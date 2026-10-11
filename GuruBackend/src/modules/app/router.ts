@@ -19,12 +19,16 @@ import { teacherAvailabilityRouter } from './teacherAvailability/availability.ro
 import { teacherProfileRouter } from './teacherProfile/profile.routes.js'
 import { instituteRouter } from './institute/institute.routes.js'
 import { teacherDashboardRouter } from './teacherDashboard/dashboard.routes.js'
+import { publicSettingsRouter } from './settings/settings.routes.js'
+import { maintenanceGate } from '../../middleware/maintenanceGate.js'
 import { notificationPreferencesRouter } from './notifications/preferences.routes.js'
 
 // Mounted at /api/v1/app in app.ts — the mobile app's API, separate from /api/v1/admin.
 export const mobileAppRouter = Router()
 
+mobileAppRouter.use(maintenanceGate)
 mobileAppRouter.use(bootstrapRouter)
+mobileAppRouter.use(publicSettingsRouter)
 mobileAppRouter.use(platformRouter)
 mobileAppRouter.use(appAuthRouter)
 mobileAppRouter.use(registrationRouter)

@@ -428,7 +428,14 @@ export interface DB {
     starts_at: Timestamp
     ends_at: Timestamp | null
     status: Generated<'draft' | 'scheduled' | 'active' | 'paused' | 'expired'>
+    impressions: Generated<number | string>
+    clicks: Generated<number | string>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
+    deleted_by: string | null
   }
   user_notifications: {
     id: Generated<string>
@@ -479,8 +486,16 @@ export interface DB {
   system_settings: {
     id: Generated<string>
     key: string
+    group_name: string
     value: unknown
+    value_type: 'string' | 'number' | 'boolean' | 'url' | 'email' | 'phone' | 'semver' | 'json'
+    label: string
+    description: string | null
     is_public: boolean
+    is_editable: Generated<boolean>
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
   }
 
   // ---- M11–M15 / M43 / M10 / M13 tables (shapes mirror sql/schema.sql) ----
@@ -723,6 +738,25 @@ export interface DB {
     effective_from: Timestamp
     effective_to: Timestamp | null
     status: 'draft' | 'scheduled' | 'active' | 'superseded' | 'cancelled'
+    currency: Generated<string>
+    change_reason: string | null
+    published_by: string | null
+    published_at: Timestamp | null
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
+  }
+  payment_configuration_history: {
+    id: Generated<string>
+    payment_configuration_id: string
+    fee_code: string
+    action: 'created' | 'updated' | 'published' | 'scheduled' | 'activated' | 'superseded' | 'cancelled' | 'enabled' | 'disabled'
+    old_values: unknown
+    new_values: unknown
+    reason: string | null
+    changed_by: string | null
+    created_at: Generated<Timestamp>
   }
   transactions: {
     id: Generated<string>
