@@ -21,11 +21,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **4** | 3 | 0 | 44 | 51 |
+| **Admin web** | **5** | 3 | 0 | 43 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **18** | 9 | 4 | 75 | 106 |
+| **Both together** | **19** | 9 | 4 | 74 | 106 |
 
-Overall: **18 of 106 modules are fully complete** (about 17%). A further 9 have their API built but no screens yet.
+Overall: **19 of 106 modules are fully complete** (about 18%). A further 9 have their API built but no screens yet.
 
 ---
 
@@ -48,7 +48,7 @@ Overall: **18 of 106 modules are fully complete** (about 17%). A further 9 have 
 | M12 | Subject management | ➖ | ➖ | ➖ | |
 | M13 | Board management | ➖ | ➖ | ➖ | |
 | M14 | Teaching mode management | ✅ | ✅ | ✅ | List/search, create, edit (code locked), activate, delete (blocked while teachers/children/batches use it), restore. The 5 built-in modes (Online, At teacher's place, Home tuition, Hybrid, Group batch) can be renamed and re-ordered but never removed, deactivated or have the location flag changed. |
-| M15 | Teacher category management | ➖ | ➖ | ➖ | |
+| M15 | Teacher category management | ✅ | ✅ | ✅ | List/search, create (slug generated, fixed after creation), edit, activate (asks first when teachers use it), delete (blocked while teachers/children use it), restore, reorder (first 8 active fill the app home grid). Not done: the icon uploader, because admin file upload (presign) does not exist yet; the API already accepts an uploaded icon and returns its CDN URL. |
 | M16 | Teacher registration queue | ✅ | ➖ | 🟡 | Queue, claim, decisions, approve/reject. Face/name-match checks wait on a vendor. |
 | M17 | Teacher profile management | ➖ | ➖ | ➖ | |
 | M18 | Teacher–subject mapping | ➖ | ➖ | ➖ | |

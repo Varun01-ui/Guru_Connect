@@ -81,6 +81,8 @@ export type MasterConfig<Row extends MasterRow, Form extends FieldValues> = {
     /** Field names that cannot be edited on this row. */
     lockedFields?: (row: Row) => string[]
   }
+  /** Returns a sentence when switching this row off needs confirming first (e.g. how many teachers it affects). */
+  confirmDeactivate?: (row: Row) => string | null
   /** Enables a "Reorder" dialog backed by PUT <apiPath>/order. `sort` is the list order that shows the current sequence. */
   reorder?: { sort: SortKey; warning?: string }
   /** Enables a CSV import dialog backed by POST <apiPath>/import. */

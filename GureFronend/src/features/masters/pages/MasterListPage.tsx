@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { FieldValues } from 'react-hook-form'
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog'
 import { DataTable } from '../../../components/shared/DataTable'
 import type { DataTableColumn, SortState } from '../../../components/shared/DataTable'
 import { Pagination } from '../../../components/shared/Pagination'
@@ -68,6 +69,7 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
   const [editing, setEditing] = useState<Row | 'new' | null>(null)
   const [deleting, setDeleting] = useState<Row | null>(null)
   const [reordering, setReordering] = useState(false)
+  const [confirmingOff, setConfirmingOff] = useState<{ row: Row; message: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [notice, setNotice] = useState<string | null>(null)
@@ -152,7 +154,11 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
             checked={row.isActive}
             label={`${row.name} active`}
             disabled={!canManage || config.rowRules?.canToggle?.(row) === false}
-            onChange={(next) => toggle.mutate({ row, next })}
+            onChange={(next) => {
+              const message = next ? null : (config.confirmDeactivate?.(row) ?? null)
+              if (message) setConfirmingOff({ row, message })
+              else toggle.mutate({ row, next })
+            }}
           />
         ),
     },
@@ -338,6 +344,19 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           }}
         />
       ) : null}
+      {confirmingOff ? (
+        <ConfirmDialog
+          title={`Deactivate ${confirmingOff.row.name}?`}
+          message={confirmingOff.message}
+          confirmLabel="Deactivate"
+          onCancel={() => setConfirmingOff(null)}
+          onConfirm={() => {
+            toggle.mutate({ row: confirmingOff.row, next: false })
+            setConfirmingOff(null)
+          }}
+        />
+      ) : null}
+
       {reordering ? (
         <ReorderDialog
           config={config}

@@ -17,6 +17,7 @@ import { rbacRouter } from './modules/rbac/rbac.routes.js'
 import { teacherVerificationRouter } from './modules/teacherVerification/tv.routes.js'
 import { countriesRouter } from './modules/countries/countries.routes.js'
 import { classesRouter } from './modules/classes/classes.routes.js'
+import { teacherCategoriesRouter } from './modules/teacherCategories/teacherCategories.routes.js'
 import { teachingModesRouter } from './modules/teachingModes/teachingModes.routes.js'
 
 export function createApp() {
@@ -41,6 +42,7 @@ export function createApp() {
   app.use('/api/v1/admin', teacherVerificationRouter)
   app.use('/api/v1/admin', countriesRouter)
   app.use('/api/v1/admin', classesRouter)
+  app.use('/api/v1/admin', teacherCategoriesRouter)
   app.use('/api/v1/admin', teachingModesRouter)
   app.use('/api/v1/app', mobileAppRouter)
 
