@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **8** | 2 | 0 | 41 | 51 |
+| **Admin web** | **9** | 2 | 0 | 40 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **22** | 8 | 4 | 72 | 106 |
+| **Both together** | **23** | 8 | 4 | 71 | 106 |
 
-Overall: **22 of 106 modules are fully complete** (about 21%). A further 8 have their API built but no screens yet.
+Overall: **23 of 106 modules are fully complete** (about 22%). A further 8 have their API built but no screens yet.
 
 ---
 
@@ -44,7 +44,7 @@ Overall: **22 of 106 modules are fully complete** (about 21%). A further 8 have 
 | M06 | Referral configuration | ➖ | ➖ | ➖ | |
 | M07 | Country management | ✅ | ✅ | ✅ | List/search/sort/page, create, edit (If-Match), activate, delete (blocked while states use it), restore (super admin), cached dropdown. Also built the shared list pieces M08–M15 reuse: `MasterListPage` + config, `DataTable`, `Pagination`, `StatusSwitch`. |
 | M08 | State management | ✅ | ✅ | ✅ | List/search/filter by country and type, create under an active country, edit, activate, delete (blocked while cities/boards/parents use it), restore (not under a deleted country), CSV import (dry-run check, then apply; any bad row rejects the whole file). A state with cities can't move to another country. |
-| M09 | City management | ➖ | ➖ | ➖ | |
+| M09 | City management | ✅ | ✅ | ✅ | List/search (closest names first)/filter by country, state, tier and launch status, create (slug made from the name, or your own), edit, activate, delete (blocked while areas/teachers/parents use it), restore (not under a deleted state), live stats. Marking a city as a launch city shows its numbers first and warns under 20 verified teachers; the slug is frozen after launch. |
 | M10 | Area management | ➖ | ➖ | ➖ | |
 | M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
 | M12 | Subject management | ➖ | ➖ | ➖ | |

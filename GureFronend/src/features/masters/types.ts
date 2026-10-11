@@ -85,6 +85,11 @@ export type MasterConfig<Row extends MasterRow, Form extends FieldValues> = {
     /** Field names that cannot be edited on this row. */
     lockedFields?: (row: Row) => string[]
   }
+  /**
+   * Runs just before a save: return a sentence to make the admin confirm first (e.g. the counts behind "mark as a launch
+   * city"), or null to save at once. `payload` is the whole body for a create and only the changed fields for an edit.
+   */
+  confirmSave?: (args: { row: Row | null; payload: Record<string, unknown> }) => Promise<string | null>
   /** Returns a sentence when switching this row off needs confirming first (e.g. how many teachers it affects). */
   confirmDeactivate?: (row: Row) => string | null
   /** Enables a "Reorder" dialog backed by PUT <apiPath>/order. `sort` is the list order that shows the current sequence. */

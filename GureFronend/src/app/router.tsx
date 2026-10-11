@@ -17,6 +17,7 @@ import { teachingModesConfig } from '../features/masters/config/teachingModes.co
 import { teacherCategoriesConfig } from '../features/masters/config/teacherCategories.config'
 import { statesConfig } from '../features/masters/config/states.config'
 import { boardsConfig } from '../features/masters/config/boards.config'
+import { citiesConfig } from '../features/masters/config/cities.config'
 import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
@@ -140,6 +141,16 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <AdminDetailPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/locations/cities',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={citiesConfig} />
         </AppShell>
       </RequireAuth>
     ),

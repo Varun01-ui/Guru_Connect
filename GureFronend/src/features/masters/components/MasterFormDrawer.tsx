@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import type { DefaultValues, FieldValues, Path, UseFormRegisterReturn } from 'react-hook-form'
+import { ConfirmDialog } from '../../../components/shared/ConfirmDialog'
 import { ApiError } from '../../../lib/api'
 import { zodResolver } from '../../../lib/zodResolver'
 import { createMaster, getMaster, updateMaster } from '../api/masters.api'
@@ -55,6 +56,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
   const [base, setBase] = useState<Row | null>(row)
   const [formError, setFormError] = useState<string | null>(null)
   const [stale, setStale] = useState(false)
+  const [pendingConfirm, setPendingConfirm] = useState<string | null>(null)
 
   // Fields that cannot change on an existing row (stable codes, built-in rows). Disabled inputs report no value to
   // react-hook-form, so their stored value is put back before validating.
@@ -112,23 +114,29 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     setFormError(error.message)
   }
 
-  const onSubmit = handleSubmit(async (values) => {
-    setFormError(null)
-    try {
-      if (!base) {
-        onSaved(await createMaster<Row>(config.apiPath, config.toPayload(values)), 'created')
-        return
+  // `skipConfirm` is true when the admin has just said yes to the confirmSave question.
+  const submit = (skipConfirm: boolean) =>
+    handleSubmit(async (values) => {
+      setFormError(null)
+      try {
+        const payload = base ? changedFields(config.toPayload(values), config.toPayload(config.toFormValues(base))) : config.toPayload(values)
+        if (base && Object.keys(payload).length === 0) {
+          onClose()
+          return
+        }
+        if (!skipConfirm) {
+          const message = await config.confirmSave?.({ row: base, payload })
+          if (message) {
+            setPendingConfirm(message)
+            return
+          }
+        }
+        if (!base) onSaved(await createMaster<Row>(config.apiPath, payload), 'created')
+        else onSaved(await updateMaster<Row>(config.apiPath, base.id, payload, base.updatedAt), 'updated')
+      } catch (error) {
+        showApiError(error)
       }
-      const payload = changedFields(config.toPayload(values), config.toPayload(config.toFormValues(base)))
-      if (Object.keys(payload).length === 0) {
-        onClose()
-        return
-      }
-      onSaved(await updateMaster<Row>(config.apiPath, base.id, payload, base.updatedAt), 'updated')
-    } catch (error) {
-      showApiError(error)
-    }
-  })
+    })
 
   async function reload() {
     if (!base) return
@@ -246,7 +254,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
           {base ? `Edit ${config.singular}` : `Add ${config.singular}`}
         </h2>
 
-        <form className="mt-5 space-y-4" onSubmit={onSubmit} noValidate>
+        <form className="mt-5 space-y-4" onSubmit={submit(false)} noValidate>
           {config.fields.filter(isShown).map(renderField)}
 
           {formError ? (
@@ -278,6 +286,19 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
             </button>
           </div>
         </form>
+
+        {pendingConfirm ? (
+          <ConfirmDialog
+            title={base ? `Save changes to ${base.name}?` : `Add this ${config.singular}?`}
+            message={pendingConfirm}
+            confirmLabel="Yes, continue"
+            onCancel={() => setPendingConfirm(null)}
+            onConfirm={() => {
+              setPendingConfirm(null)
+              void submit(true)()
+            }}
+          />
+        ) : null}
       </aside>
     </div>
   )
