@@ -211,3 +211,12 @@ Built on a shared kernel so M09 (cities), M10 (areas), M12 (subjects) and M13 (b
 - **Not done:** the category `IconUploader` — admin file upload (presign) doesn't exist yet, so icons can't be chosen in the UI (the API accepts and serves one).
 - **Tests:** classes 62, teaching modes 68, teacher categories 68, states 83 (+11 for `lib/csv`), each covering every row of the spec's Error Scenarios table. They purge fixtures by creator and restore any seeded rows they touch (class order, built-in mode descriptions, category order), so re-runs are clean. Frontend 198 tests in total.
 
+## Admin M02 UI (Roles & Permissions screens) — implemented
+
+Routes `/settings/roles`, `/settings/roles/new`, `/settings/roles/:id`, `/settings/admins`, `/settings/admins/:id`; sidebar group "Settings" (`roles.read` / `admins.read`). Code: `GureFronend/src/features/rbac/` (`api/rbac.api.ts`, `pages/{RolesListPage,RoleEditorPage,AdminsListPage,AdminDetailPage}.tsx`, `components/{PermissionMatrix,RoleCard,InviteAdminDialog,AssignRolesDialog,DisableAdminDialog,AdminStatusBadge}.tsx`, `Can.tsx`, `testData.ts` for fixtures). New shared pieces: `components/shared/Modal.tsx` (dialog shell), `lib/format.ts` (`formatDateTime`).
+
+- **Permission matrix** groups the catalogue by module with one checkbox per key (the keys aren't uniform enough for a fixed read/create/update/delete grid), a "select all in module" toggle and a lock badge on sensitive keys. A reason is only asked for when a sensitive key is being *added* (matches `putRolePermissions`). Saves send `If-Match: <role.updatedAt>`; a `VERSION_CONFLICT` shows a "Reload latest" banner.
+- **Assigning roles** previews what the admin gains and loses by fetching the permission keys of every role involved. The admin detail page hides disable/delete on your own account (the API refuses them anyway) and gates each button on `admins.manage` / `sessions.revoke_any`.
+- **Gap:** the admin page's "audit trail" is a placeholder note; there is no audit-log read endpoint until the M00 viewer exists.
+- **Tests:** 7 test files under `features/rbac/` (matrix, both lists, role editor create+edit, admin detail, invite/assign/disable dialogs, `Can`). Run the whole frontend suite with `--maxWorkers=4` if workers time out on a loaded machine.
+

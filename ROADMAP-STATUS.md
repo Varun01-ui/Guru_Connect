@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **7** | 3 | 0 | 41 | 51 |
+| **Admin web** | **8** | 2 | 0 | 41 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **21** | 9 | 4 | 72 | 106 |
+| **Both together** | **22** | 8 | 4 | 72 | 106 |
 
-Overall: **21 of 106 modules are fully complete** (about 20%). A further 9 have their API built but no screens yet.
+Overall: **22 of 106 modules are fully complete** (about 21%). A further 8 have their API built but no screens yet.
 
 ---
 
@@ -37,7 +37,7 @@ Overall: **21 of 106 modules are fully complete** (about 20%). A further 9 have 
 |---|---|---|---|---|---|
 | M00 | Platform foundation (audit logs, files, app users) | ✅ | ➖ | 🟡 | Tables, audit helper, files. No admin UI for audit logs/files. |
 | M01 | Authentication | ✅ | ✅ | ✅ | Login, OTP login, forgot/reset, invite, sessions. Open: Argon2id, RS256, HIBP, SMS gateway. |
-| M02 | Roles & permissions | ✅ | ➖ | 🟡 | RBAC live; no roles/permissions pages yet. |
+| M02 | Roles & permissions | ✅ | ✅ | ✅ | API was already done; the screens are now built. Roles (cards, search), role editor with a permission matrix (sensitive permissions marked, reason required, stale-edit reload, Super Admin read-only), Admins list (search, status/role/last-sign-in filters, paging), admin detail (edit name, change roles with a gain/lose preview, resend invite, disable/enable/delete with a reason, sign out everywhere) and the invite dialog. Not done: the audit trail on the admin page, because the audit log viewer (M00) doesn't exist yet. |
 | M03 | Admin profile management | ➖ | ➖ | ➖ | |
 | M04 | Global settings | ➖ | ➖ | ➖ | |
 | M05 | Dynamic payment configuration | ➖ | ➖ | ➖ | |

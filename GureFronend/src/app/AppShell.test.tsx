@@ -48,6 +48,21 @@ describe('AppShell sidebar', () => {
     expect(screen.getByRole('link', { name: 'Teacher categories' })).toHaveAttribute('href', '/masters/education/teacher-categories')
   })
 
+  it('links to Roles and Admins under Settings with their permissions', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: (key) => key === 'roles.read' })
+    renderShell()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Roles' })).toHaveAttribute('href', '/settings/roles')
+    expect(screen.queryByRole('link', { name: 'Admins' })).toBeNull()
+  })
+
+  it('shows Admins to someone who can read admins', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: (key) => key === 'admins.read' })
+    renderShell()
+    expect(screen.getByRole('link', { name: 'Admins' })).toHaveAttribute('href', '/settings/admins')
+    expect(screen.queryByRole('link', { name: 'Roles' })).toBeNull()
+  })
+
   it('hides Countries, and its whole Masters group, from an admin without the permission', () => {
     vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: () => false })
     renderShell()

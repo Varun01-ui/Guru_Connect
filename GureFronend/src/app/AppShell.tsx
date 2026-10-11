@@ -19,6 +19,13 @@ const NAV: { section: string; items: { to: string; label: string; permission?: s
       { to: '/masters/education/boards', label: 'Boards', permission: 'education_masters.read' },
     ],
   },
+  {
+    section: 'Settings',
+    items: [
+      { to: '/settings/roles', label: 'Roles', permission: 'roles.read' },
+      { to: '/settings/admins', label: 'Admins', permission: 'admins.read' },
+    ],
+  },
 ]
 
 function initials(name: string): string {

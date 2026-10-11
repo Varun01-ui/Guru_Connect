@@ -14,7 +14,6 @@ const KPIS = [
 ]
 
 const NEXT_MODULES = [
-  { code: 'M02', name: 'Roles & Permissions', note: 'Powers real permissions on /auth/me' },
   { code: 'M03', name: 'Admin Profile Management', note: 'Avatar, timezone, theme, notification prefs' },
   { code: 'M04', name: 'Global Settings', note: 'Maintenance mode, contact & legal settings' },
 ]
