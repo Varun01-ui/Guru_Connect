@@ -34,6 +34,13 @@ describe('AppShell sidebar', () => {
     expect(screen.getByText('page body')).toBeInTheDocument()
   })
 
+  it('links to Classes only with the education masters permission', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: (key) => key === 'education_masters.read' })
+    renderShell()
+    expect(screen.getByRole('link', { name: 'Classes' })).toHaveAttribute('href', '/masters/education/classes')
+    expect(screen.queryByRole('link', { name: 'Countries' })).toBeNull()
+  })
+
   it('hides Countries, and its whole Masters group, from an admin without the permission', () => {
     vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: () => false })
     renderShell()

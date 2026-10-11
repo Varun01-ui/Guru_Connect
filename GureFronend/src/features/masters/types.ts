@@ -6,21 +6,38 @@ export type MasterRow = {
   id: string
   name: string
   isActive: boolean
-  sortOrder: number
   createdAt: string
   updatedAt: string
   deletedAt: string | null
 }
 
-export type SortKey = 'name' | 'sortOrder' | 'createdAt'
+/** A column key the API accepts in `?sort=<key>:asc|desc`. */
+export type SortKey = string
+
+export type SelectOption = { value: string; label: string }
 
 export type MasterField = {
   name: string
   label: string
-  kind: 'text' | 'number' | 'switch'
+  kind: 'text' | 'textarea' | 'number' | 'switch' | 'select'
   hint?: string
   placeholder?: string
   maxLength?: number
+  /** Fixed choices for a select. */
+  options?: SelectOption[]
+  /** API path of another master whose active rows (`?active=true&fields=id,name`) fill a select, e.g. '/countries'. */
+  optionsFrom?: string
+  /** Fixed once the row exists (stable codes the apps key on): shown, but not editable. */
+  immutable?: boolean
+}
+
+export type MasterFilter = {
+  /** Query-string parameter, e.g. 'stage'. */
+  param: string
+  label: string
+  allLabel?: string
+  options?: SelectOption[]
+  optionsFrom?: string
 }
 
 export type MasterColumn<Row> = {
@@ -49,9 +66,23 @@ export type MasterConfig<Row extends MasterRow, Form extends FieldValues> = {
   toFormValues: (row: Row) => Form
   toPayload: (values: Form) => Record<string, unknown>
   columns: MasterColumn<Row>[]
-  /** How many live records use this row (what blocks a delete). */
-  usageCount: (row: Row) => number
-  usageLabel: (count: number) => string
+  /** Dropdown filters shown next to the search box (stage, country, type ...). */
+  filters?: MasterFilter[]
+  /** How many live records use this row, and the words for the "Used by" badge. */
+  usage: (row: Row) => { count: number; label: string }
   /** API table name -> words for the "in use" dialog, e.g. { states: 'states' }. */
   referenceNames: Record<string, string>
+  /** For a select whose current value may be missing from the active options (e.g. an inactive parent). */
+  selectedOption?: (row: Row, field: string) => SelectOption | null
+  /** Per-row restrictions the API also enforces; the UI just avoids offering what would be refused. */
+  rowRules?: {
+    canToggle?: (row: Row) => boolean
+    canDelete?: (row: Row) => boolean
+    /** Field names that cannot be edited on this row. */
+    lockedFields?: (row: Row) => string[]
+  }
+  /** Enables a "Reorder" dialog backed by PUT <apiPath>/order. `sort` is the list order that shows the current sequence. */
+  reorder?: { sort: SortKey; warning?: string }
+  /** Enables a CSV import dialog backed by POST <apiPath>/import. */
+  importCsv?: { columns: string; example: string }
 }

@@ -1,7 +1,10 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../../lib/api'
 import { createMaster, getMaster, updateMaster } from '../api/masters.api'
+import { classesConfig } from '../config/classes.config'
+import type { ClassRow } from '../config/classes.config'
 import { countriesConfig } from '../config/countries.config'
 import type { Country } from '../config/countries.config'
 import { MasterFormDrawer } from './MasterFormDrawer'
@@ -202,5 +205,94 @@ describe('MasterFormDrawer — dismissing', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onClose).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('MasterFormDrawer — select fields and unchangeable fields (classes)', () => {
+  const class10: ClassRow = {
+    id: 'cl-10',
+    name: 'Class 10',
+    code: 'CLASS_10',
+    stage: 'secondary',
+    levelOrder: 10,
+    isActive: true,
+    teacherCount: 3,
+    childCount: 1,
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-20T08:11:02.114Z',
+    deletedAt: null,
+  }
+
+  function openClass(row: ClassRow | null) {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return render(
+      <QueryClientProvider client={client}>
+        <MasterFormDrawer config={classesConfig} row={row} onClose={onClose} onSaved={onSaved} />
+      </QueryClientProvider>,
+    )
+  }
+
+  it('offers every stage in the select and requires a choice', async () => {
+    openClass(null)
+    const stage = screen.getByLabelText('Stage')
+    expect([...stage.querySelectorAll('option')].map((o) => o.textContent)).toEqual([
+      'Select…',
+      'Pre-primary',
+      'Primary',
+      'Middle',
+      'Secondary',
+      'Senior secondary',
+      'Undergraduate',
+      'Postgraduate',
+      'Competitive exams',
+      'Adult learners',
+    ])
+    type('Name', 'Class 11 (Droppers)')
+    type('Code', 'class_11_drop')
+    type('Level order', '15')
+    submit('Add class')
+    expect(await screen.findByText('Pick a value from the list.')).toBeInTheDocument()
+    expect(createMaster).not.toHaveBeenCalled()
+  })
+
+  it('creates a class with the chosen stage and an upper-cased code', async () => {
+    vi.mocked(createMaster).mockResolvedValue(class10)
+    openClass(null)
+    type('Name', ' Class 11 (Droppers) ')
+    type('Code', 'class_11_drop')
+    type('Stage', 'competitive')
+    type('Level order', '15')
+    submit('Add class')
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(class10, 'created'))
+    expect(createMaster).toHaveBeenCalledWith('/classes', { name: 'Class 11 (Droppers)', code: 'CLASS_11_DROP', stage: 'competitive', levelOrder: 15, isActive: true })
+  })
+
+  it('shows the code as read-only when editing, and never sends it', async () => {
+    vi.mocked(updateMaster).mockResolvedValue({ ...class10, levelOrder: 11 } as never)
+    openClass(class10)
+    const code = screen.getByLabelText('Code')
+    expect(code).toHaveValue('CLASS_10')
+    expect(code).toHaveAttribute('readonly')
+    expect(screen.getByText("Can't be changed after it is created.")).toBeInTheDocument()
+
+    type('Level order', '11')
+    submit('Save changes')
+    await waitFor(() => expect(onSaved).toHaveBeenCalled())
+    expect(updateMaster).toHaveBeenCalledWith('/classes', 'cl-10', { levelOrder: 11 }, '2026-09-20T08:11:02.114Z')
+  })
+
+  it('keeps a read-only field valid even though it reports no value', async () => {
+    openClass(class10)
+    type('Name', 'Class Ten')
+    submit('Save changes')
+    await waitFor(() => expect(updateMaster).toHaveBeenCalledWith('/classes', 'cl-10', { name: 'Class Ten' }, '2026-09-20T08:11:02.114Z'))
+  })
+
+  it('shows the server refusal to change a code as a form-level alert', async () => {
+    vi.mocked(updateMaster).mockRejectedValue(new ApiError(409, 'CONFLICT_STATE', "Class codes can't change."))
+    openClass(class10)
+    type('Name', 'Class Ten')
+    submit('Save changes')
+    expect(await screen.findByRole('alert')).toHaveTextContent("Class codes can't change.")
   })
 })

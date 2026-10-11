@@ -1,6 +1,6 @@
 # GuruConnect — Build Roadmap & Progress Tracker
 
-_Last updated: 2026-10-11 (M07 Country management completed)_
+_Last updated: 2026-10-11_
 
 How to use: when a module's API and screens are finished **and its tests pass**, change `➖` to `✅` in its row (and update the overall column and the summary counts).
 
@@ -21,11 +21,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **2** | 3 | 0 | 46 | 51 |
+| **Admin web** | **3** | 3 | 0 | 45 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **16** | 9 | 4 | 77 | 106 |
+| **Both together** | **17** | 9 | 4 | 76 | 106 |
 
-Overall: **16 of 106 modules are fully complete** (about 15%). A further 9 have their API built but no screens yet.
+Overall: **17 of 106 modules are fully complete** (about 16%). A further 9 have their API built but no screens yet.
 
 ---
 
@@ -44,7 +44,7 @@ Overall: **16 of 106 modules are fully complete** (about 15%). A further 9 have 
 | M08 | State management | ➖ | ➖ | ➖ | |
 | M09 | City management | ➖ | ➖ | ➖ | |
 | M10 | Area management | ➖ | ➖ | ➖ | |
-| M11 | Class management | ➖ | ➖ | ➖ | |
+| M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
 | M12 | Subject management | ➖ | ➖ | ➖ | |
 | M13 | Board management | ➖ | ➖ | ➖ | |
 | M14 | Teaching mode management | ➖ | ➖ | ➖ | |

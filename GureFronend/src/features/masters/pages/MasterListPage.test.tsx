@@ -3,7 +3,9 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../../lib/api'
 import { usePermissions } from '../../auth/usePermissions'
-import { createMaster, deleteMaster, listMasters, restoreMaster, setMasterActive, updateMaster } from '../api/masters.api'
+import { createMaster, deleteMaster, listMasters, reorderMasters, restoreMaster, setMasterActive, updateMaster } from '../api/masters.api'
+import { classesConfig } from '../config/classes.config'
+import type { ClassRow } from '../config/classes.config'
 import { countriesConfig } from '../config/countries.config'
 import type { Country } from '../config/countries.config'
 import { MasterListPage } from './MasterListPage'
@@ -214,7 +216,7 @@ describe('MasterListPage — create and edit', () => {
   })
 
   it('opens the drawer prefilled to edit and sends the row version', async () => {
-    vi.mocked(updateMaster).mockResolvedValue({ ...india, sortOrder: 9 })
+    vi.mocked(updateMaster).mockResolvedValue({ ...india, sortOrder: 9 } as never)
     renderPage()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit India' }))
     const drawer = screen.getByRole('dialog', { name: 'Edit country' })
@@ -292,5 +294,83 @@ describe('MasterListPage — deleted rows', () => {
     fireEvent.click(within(row).getByRole('button', { name: 'Restore' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Country Narnia restored.')
     expect(restoreMaster).toHaveBeenCalledWith('/countries', 'c-nr')
+  })
+})
+
+describe('MasterListPage — filters and reorder (classes config)', () => {
+  const class10: ClassRow = {
+    id: 'cl-10',
+    name: 'Class 10',
+    code: 'CLASS_10',
+    stage: 'secondary',
+    levelOrder: 10,
+    isActive: true,
+    teacherCount: 12,
+    childCount: 1,
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-20T08:11:02.114Z',
+    deletedAt: null,
+  }
+  const ug: ClassRow = { ...class10, id: 'cl-ug', name: 'Undergraduate', code: 'UG', stage: 'undergraduate', levelOrder: 13, teacherCount: 0, childCount: 0 }
+
+  function renderClasses() {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    return render(
+      <QueryClientProvider client={client}>
+        <MasterListPage config={classesConfig} />
+      </QueryClientProvider>,
+    )
+  }
+
+  beforeEach(() => {
+    vi.mocked(listMasters).mockImplementation((async () => ({ data: [class10, ug], meta: { page: 1, pageSize: 20, total: 2, totalPages: 1 } })) as never)
+  })
+
+  it('shows code, stage, level and what uses each class', async () => {
+    renderClasses()
+    const row = (await screen.findByText('Class 10')).closest('tr')!
+    expect(within(row).getByText('CLASS_10')).toBeInTheDocument()
+    expect(within(row).getByText('Secondary')).toBeInTheDocument()
+    expect(within(row).getByText('10')).toBeInTheDocument()
+    expect(within(row).getByText('12 teachers · 1 child')).toBeInTheDocument()
+    expect(within(screen.getByText('UG').closest('tr')!).getByText('Unused')).toBeInTheDocument()
+  })
+
+  it('sends the stage filter to the API and resets to page 1', async () => {
+    renderClasses()
+    await screen.findByText('Class 10')
+    fireEvent.change(screen.getByLabelText('Stage'), { target: { value: 'undergraduate' } })
+    await waitFor(() => expect(lastCall()[1]).toMatchObject({ extra: { stage: 'undergraduate' }, page: 1 }))
+    fireEvent.change(screen.getByLabelText('Stage'), { target: { value: '' } })
+    await waitFor(() => expect(lastCall()[1].extra).toEqual({}))
+  })
+
+  it('opens the reorder dialog for a manager, saves, and refreshes the list', async () => {
+    vi.mocked(reorderMasters).mockResolvedValue(undefined)
+    renderClasses()
+    fireEvent.click(await screen.findByRole('button', { name: 'Reorder' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Reorder classes' })
+    await within(dialog).findByRole('list')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Move Undergraduate up' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save order' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Order of the classes saved.')
+    expect(reorderMasters).toHaveBeenCalledWith('/classes', ['cl-ug', 'cl-10'])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('does not offer reordering to a read-only admin', async () => {
+    as('reader')
+    renderClasses()
+    await screen.findByText('Class 10')
+    expect(screen.queryByRole('button', { name: 'Reorder' })).toBeNull()
+  })
+
+  it('does not offer reordering or import where the module has none (countries)', async () => {
+    vi.mocked(listMasters).mockResolvedValue(page([india, uae]))
+    renderPage()
+    await screen.findByText('India')
+    expect(screen.queryByRole('button', { name: 'Reorder' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Import CSV' })).toBeNull()
   })
 })

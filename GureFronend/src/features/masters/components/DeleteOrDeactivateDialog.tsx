@@ -49,7 +49,7 @@ export function DeleteOrDeactivateDialog<Row extends MasterRow, Form extends Fie
 
   const inUse = references !== null
   const usage = Object.entries(references ?? {})
-    .map(([table, count]) => `${count} ${config.referenceNames[table] ?? table}`)
+    .map(([table, count]) => `${count} ${config.referenceNames[table] ?? table.replace(/[_.]/g, ' ')}`)
     .join(', ')
 
   return (

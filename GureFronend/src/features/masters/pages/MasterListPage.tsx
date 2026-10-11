@@ -13,9 +13,12 @@ import { usePermissions } from '../../auth/usePermissions'
 import { listMasters, restoreMaster, setMasterActive } from '../api/masters.api'
 import type { ListParams } from '../api/masters.api'
 import { DeleteOrDeactivateDialog } from '../components/DeleteOrDeactivateDialog'
+import { ImportCsvDialog } from '../components/ImportCsvDialog'
 import { MasterFormDrawer } from '../components/MasterFormDrawer'
+import { ReorderDialog } from '../components/ReorderDialog'
 import { UsageBadge } from '../components/UsageBadge'
-import type { MasterConfig, MasterRow, SortKey } from '../types'
+import { useOptions } from '../hooks/useOptions'
+import type { MasterConfig, MasterFilter, MasterRow, SortKey } from '../types'
 
 type ListResult<Row> = { data: Row[]; meta: PageMeta }
 type StatusFilter = 'all' | 'active' | 'inactive'
@@ -25,7 +28,29 @@ const errorText = (error: unknown, fallback: string) => (error instanceof ApiErr
 
 const primaryButton =
   'rounded-lg bg-[var(--color-accent)] px-3.5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[var(--color-accent-hover)]'
+const secondaryButton =
+  'rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-2 text-[13px] font-semibold transition-colors hover:border-[var(--color-accent)]'
 const linkButton = 'text-[13px] font-medium text-[var(--color-accent)] hover:underline disabled:opacity-50'
+
+const selectClass = 'h-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm text-[var(--color-fg)]'
+
+function FilterSelect({ filter, value, onChange }: { filter: MasterFilter; value: string; onChange: (value: string) => void }) {
+  const remote = useOptions(filter.optionsFrom)
+  const options = [...(filter.options ?? []), ...(remote.data ?? [])]
+  return (
+    <label className="flex items-center gap-2 text-sm text-[var(--color-fg-muted)]">
+      {filter.label}
+      <select value={value} onChange={(e) => onChange(e.target.value)} className={selectClass}>
+        <option value="">{filter.allLabel ?? 'All'}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
 
 // One generic list screen for every master-data module (spec section 14): the config says what the columns,
 // form and API paths are, this page owns search, filters, sorting, paging, the active switch and row actions.
@@ -42,6 +67,9 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
   const [pageSize, setPageSize] = useState(20)
   const [editing, setEditing] = useState<Row | 'new' | null>(null)
   const [deleting, setDeleting] = useState<Row | null>(null)
+  const [reordering, setReordering] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({})
   const [notice, setNotice] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -53,6 +81,7 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
     active: status === 'all' ? undefined : status === 'active',
     sort: sort ?? undefined,
     includeDeleted: includeDeleted || undefined,
+    extra: Object.fromEntries(Object.entries(filterValues).filter(([, v]) => v !== '')),
   }
   const listKey = [config.key, 'list'] as const
 
@@ -104,7 +133,14 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
 
   const columns: DataTableColumn<Row, SortKey>[] = [
     ...config.columns,
-    { id: 'usage', header: 'Used by', cell: (row) => <UsageBadge count={config.usageCount(row)} label={config.usageLabel} /> },
+    {
+      id: 'usage',
+      header: 'Used by',
+      cell: (row) => {
+        const usage = config.usage(row)
+        return <UsageBadge count={usage.count} label={usage.label} />
+      },
+    },
     {
       id: 'active',
       header: 'Active',
@@ -115,7 +151,7 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           <StatusSwitch
             checked={row.isActive}
             label={`${row.name} active`}
-            disabled={!canManage}
+            disabled={!canManage || config.rowRules?.canToggle?.(row) === false}
             onChange={(next) => toggle.mutate({ row, next })}
           />
         ),
@@ -141,24 +177,26 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
               }}>
               Edit
             </button>
-            <button
-              type="button"
-              className="text-[13px] font-medium text-[var(--color-bad)] hover:underline"
-              aria-label={`Delete ${row.name}`}
-              onClick={() => {
-                setNotice(null)
-                setDeleting(row)
-              }}
-            >
-              Delete
-            </button>
+            {config.rowRules?.canDelete?.(row) === false ? null : (
+              <button
+                type="button"
+                className="text-[13px] font-medium text-[var(--color-bad)] hover:underline"
+                aria-label={`Delete ${row.name}`}
+                onClick={() => {
+                  setNotice(null)
+                  setDeleting(row)
+                }}
+              >
+                Delete
+              </button>
+            )}
           </span>
         )
       },
     },
   ]
 
-  const filtered = Boolean(q) || status !== 'all' || includeDeleted
+  const filtered = Boolean(q) || status !== 'all' || includeDeleted || Object.values(filterValues).some(Boolean)
   const emptyText = filtered
     ? `No ${config.plural} match your filters.`
     : `No ${config.plural} yet.${canManage ? ` Add the first ${config.singular}.` : ''}`
@@ -171,12 +209,28 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           <p className="mt-1 max-w-2xl text-sm text-[var(--color-fg-muted)]">{config.description}</p>
         </div>
         {canManage ? (
-          <button type="button" className={primaryButton} onClick={() => {
-              setNotice(null)
-              setEditing('new')
-            }}>
-            Add {config.singular}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {config.reorder ? (
+              <button type="button" className={secondaryButton} onClick={() => setReordering(true)}>
+                Reorder
+              </button>
+            ) : null}
+            {config.importCsv ? (
+              <button type="button" className={secondaryButton} onClick={() => setImporting(true)}>
+                Import CSV
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={primaryButton}
+              onClick={() => {
+                setNotice(null)
+                setEditing('new')
+              }}
+            >
+              Add {config.singular}
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -202,6 +256,14 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
               <option value="inactive">Inactive</option>
             </select>
           </label>
+          {(config.filters ?? []).map((filter) => (
+            <FilterSelect
+              key={filter.param}
+              filter={filter}
+              value={filterValues[filter.param] ?? ''}
+              onChange={(value) => changeFilter(() => setFilterValues((current) => ({ ...current, [filter.param]: value })))}
+            />
+          ))}
           {isSuperAdmin ? (
             <label className="flex items-center gap-2 text-sm text-[var(--color-fg-muted)]">
               <input type="checkbox" checked={includeDeleted} onChange={(e) => changeFilter(() => setIncludeDeleted(e.target.checked))} />
@@ -272,6 +334,29 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           onDone={(outcome) => {
             setNotice(`${capitalise(config.singular)} ${deleting.name} ${outcome}.`)
             setDeleting(null)
+            refresh()
+          }}
+        />
+      ) : null}
+      {reordering ? (
+        <ReorderDialog
+          config={config}
+          onClose={() => setReordering(false)}
+          onSaved={() => {
+            setReordering(false)
+            setNotice(`Order of the ${config.plural} saved.`)
+            refresh()
+          }}
+        />
+      ) : null}
+
+      {importing ? (
+        <ImportCsvDialog
+          config={config}
+          onClose={() => setImporting(false)}
+          onImported={(result) => {
+            setImporting(false)
+            setNotice(`Imported ${result.created.length} ${config.plural}${result.skipped.length > 0 ? `, skipped ${result.skipped.length} that already existed` : ''}.`)
             refresh()
           }}
         />
