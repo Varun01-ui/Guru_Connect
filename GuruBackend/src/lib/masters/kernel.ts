@@ -37,6 +37,8 @@ export type MasterDef<Row extends BaseRow, View extends BaseView> = {
   mapDuplicate: (error: unknown) => unknown
   guardDeactivate?: (row: Row) => void
   guardDelete?: (row: Row) => void
+  /** References that aren't foreign keys (e.g. ids stored in an array column), counted with the discovered ones when deleting. */
+  extraReferences?: (executor: Kysely<DB>, id: string) => Promise<Record<string, number>>
   /** Runs inside the restore transaction, e.g. to refuse restoring a child of a deleted parent. */
   guardRestore?: (executor: Kysely<DB>, row: Row) => Promise<void> | void
 }
@@ -144,7 +146,8 @@ export async function deleteMaster<Row extends BaseRow, View extends BaseView>(d
     // The row lock also blocks a concurrent insert of a referencing row (its FK check takes a share lock on this row).
     const row = await def.load(trx, id, { lock: true })
     def.guardDelete?.(row)
-    const references = await countReferences(trx, def.table, id)
+    const references = { ...(await countReferences(trx, def.table, id)), ...(await def.extraReferences?.(trx, id)) }
+    for (const key of Object.keys(references)) if (references[key] === 0) delete references[key]
     if (Object.keys(references).length > 0) throw inUseError(def.noun, references)
     await update(trx, def.table, id, { deleted_at: sql`now()`, deleted_by: ctx.actor.id, updated_by: ctx.actor.id })
     await audit(trx, { ...auditBase(ctx, def, id), action: `${def.auditPrefix}.deleted`, oldValues: def.snapshot(def.present(row)) })

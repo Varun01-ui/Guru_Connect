@@ -37,7 +37,7 @@ const linkButton = 'text-[13px] font-medium text-[var(--color-accent)] hover:und
 const selectClass = 'h-10 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-sm text-[var(--color-fg)]'
 
 function FilterSelect({ filter, value, onChange }: { filter: MasterFilter; value: string; onChange: (value: string) => void }) {
-  const remote = useOptions(filter.optionsFrom)
+  const remote = useOptions(filter.optionsFrom, filter.optionsValueKey)
   const options = [...(filter.options ?? []), ...(remote.data ?? [])]
   return (
     <label className="flex items-center gap-2 text-sm text-[var(--color-fg-muted)]">

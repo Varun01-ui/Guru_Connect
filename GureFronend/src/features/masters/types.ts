@@ -27,6 +27,8 @@ export type MasterField = {
   options?: SelectOption[]
   /** API path of another master whose active rows (`?active=true&fields=id,name`) fill a select, e.g. '/countries'. */
   optionsFrom?: string
+  /** Use this field of the master as each option's value instead of its id (e.g. 'levelOrder' for classes). */
+  optionsValueKey?: string
   /** Fixed once the row exists (stable codes the apps key on): shown, but not editable. */
   immutable?: boolean
   /** Only shown while another field has this value (e.g. the state of a board is only asked for state boards). */
@@ -42,6 +44,7 @@ export type MasterFilter = {
   allLabel?: string
   options?: SelectOption[]
   optionsFrom?: string
+  optionsValueKey?: string
 }
 
 export type MasterColumn<Row> = {

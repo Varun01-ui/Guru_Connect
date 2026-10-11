@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **10** | 2 | 0 | 39 | 51 |
+| **Admin web** | **11** | 2 | 0 | 38 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **24** | 8 | 4 | 70 | 106 |
+| **Both together** | **25** | 8 | 4 | 69 | 106 |
 
-Overall: **24 of 106 modules are fully complete** (about 23%). A further 8 have their API built but no screens yet.
+Overall: **25 of 106 modules are fully complete** (about 24%). A further 8 have their API built but no screens yet.
 
 ---
 
@@ -47,7 +47,7 @@ Overall: **24 of 106 modules are fully complete** (about 23%). A further 8 have 
 | M09 | City management | ✅ | ✅ | ✅ | List/search (closest names first)/filter by country, state, tier and launch status, create (slug made from the name, or your own), edit, activate, delete (blocked while areas/teachers/parents use it), restore (not under a deleted state), live stats. Marking a city as a launch city shows its numbers first and warns under 20 verified teachers; the slug is frozen after launch. |
 | M10 | Area management | ✅ | ✅ | ✅ | List/search (name or a PIN code)/filter by city and map position, create (slug made from the name, unique within the city), edit, activate, delete (blocked while teachers/parents/students use it), restore (not under a deleted city), CSV import up to 2,000 rows (check first; any bad row rejects the file, or tick 'skip invalid rows'), merge a duplicate area into another in the same city (moves teachers/parents/students, combines PIN codes), PIN-code lookup API. |
 | M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
-| M12 | Subject management | ➖ | ➖ | ➖ | |
+| M12 | Subject management | ✅ | ✅ | ✅ | List/search (name or alias)/filter by category, parent, trending and class, create (slug made from the name and fixed), edit, aliases, two-level parent/sub-subject, class range checked against real class levels, trending capped at 10 (names the current ten), activate, delete (blocked while teachers/children/batches/sub-subjects use it), restore, merge a duplicate subject into another (moves teachers, children and batches, keeps the primary flag, adds the name as an alias). Not done: the icon uploader (no admin file upload yet); the API accepts and serves an uploaded icon. |
 | M13 | Board management | ✅ | ✅ | ✅ | List/search/filter by type and state, create (a state board needs an active state, any other board has none), edit, activate, delete (blocked while teacher class mappings, children or students use it), restore. The state field only appears for state boards. |
 | M14 | Teaching mode management | ✅ | ✅ | ✅ | List/search, create, edit (code locked), activate, delete (blocked while teachers/children/batches use it), restore. The 5 built-in modes (Online, At teacher's place, Home tuition, Hybrid, Group batch) can be renamed and re-ordered but never removed, deactivated or have the location flag changed. |
 | M15 | Teacher category management | ✅ | ✅ | ✅ | List/search, create (slug generated, fixed after creation), edit, activate (asks first when teachers use it), delete (blocked while teachers/children use it), restore, reorder (first 8 active fill the app home grid). Not done: the icon uploader, because admin file upload (presign) does not exist yet; the API already accepts an uploaded icon and returns its CDN URL. |
@@ -155,7 +155,7 @@ Overall: **24 of 106 modules are fully complete** (about 23%). A further 8 have 
 
 Ordered by what unblocks the most:
 
-1. **Admin masters M09, M10, M12, M13** (cities, areas, subjects, boards). M07, M08, M11, M14 and M15 are done and share one backend kernel and one config-driven list page, so each of these is mostly a config file plus its API. The mobile app already reads them, and right now they only change through SQL.
+1. **Admin settings M03–M06** (admin profile, global settings, payment configuration, referral configuration). The location and education masters (M07–M15) are all done; M04 global settings is the one the mobile app reads (`system_settings`: child limits, wallet on/off), and today those only change through SQL.
 2. **Admin UI for M02 and M16.** The APIs are done; without screens nobody can review a teacher in the browser.
 3. **Teacher and institute search (mobile M27–M31).** This is what fills the empty parent/student dashboard rails.
 4. **Mobile screens for M10–M13 and M21**, since their APIs already exist.

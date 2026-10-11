@@ -39,7 +39,7 @@ type SelectProps = {
 }
 
 function SelectInput({ id, field, register, disabled, invalid, describedBy, current }: SelectProps) {
-  const remote = useOptions(field.optionsFrom)
+  const remote = useOptions(field.optionsFrom, field.optionsValueKey)
   const options = [...(field.options ?? []), ...(remote.data ?? [])]
   if (current && !options.some((o) => o.value === current.value)) options.unshift(current)
   return (
@@ -114,7 +114,9 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
       }
     }
     if (error.code === 'VERSION_CONFLICT') setStale(true)
-    setFormError(error.message)
+    // A full list (e.g. 10 trending subjects) names what is in it, so the admin can pick one to swap out.
+    const full = (error.details as { trending?: { name: string }[] } | undefined)?.trending
+    setFormError(Array.isArray(full) && full.length > 0 ? `${error.message} Currently trending: ${full.map((t) => t.name).join(', ')}.` : error.message)
   }
 
   // `skipConfirm` is true when the admin has just said yes to the confirmSave question.

@@ -23,10 +23,12 @@ export function listMasters<Row extends MasterRow>(apiPath: string, params: List
   return apiFetchPage<Row[]>(`${apiPath}?${qs}`)
 }
 
-// Active rows of a master as select options (dropdown mode, cached server-side for 10 minutes).
-export async function fetchOptions(apiPath: string): Promise<SelectOption[]> {
-  const rows = await apiFetch<{ id: string; name: string }[]>(`${apiPath}?active=true&fields=id,name`)
-  return rows.map((r) => ({ value: r.id, label: r.name }))
+// Active rows of a master as select options (dropdown mode, cached server-side for 10 minutes). `valueKey` picks which
+// field becomes the option's value; it defaults to the id.
+export async function fetchOptions(apiPath: string, valueKey = 'id'): Promise<SelectOption[]> {
+  const fields = valueKey === 'id' ? 'id,name' : `id,name,${valueKey}`
+  const rows = await apiFetch<Record<string, unknown>[]>(`${apiPath}?active=true&fields=${fields}`)
+  return rows.map((r) => ({ value: String(r[valueKey]), label: String(r.name) }))
 }
 
 // Every live row of a master (active or not) as select options, optionally limited to a parent: ?cityId=... .

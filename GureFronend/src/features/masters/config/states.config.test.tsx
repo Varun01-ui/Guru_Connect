@@ -102,7 +102,7 @@ describe('states list page', () => {
     withClient(<MasterListPage config={statesConfig} />)
     await screen.findByText('Karnataka')
     await screen.findByRole('option', { name: 'India' })
-    expect(fetchOptions).toHaveBeenCalledWith('/countries')
+    expect(fetchOptions).toHaveBeenCalledWith('/countries', 'id')
 
     fireEvent.change(screen.getByLabelText('Country'), { target: { value: 'c-in' } })
     await waitFor(() => expect(lastParams()).toMatchObject({ extra: { countryId: 'c-in' }, page: 1 }))
