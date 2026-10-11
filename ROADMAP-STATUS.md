@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **9** | 2 | 0 | 40 | 51 |
+| **Admin web** | **10** | 2 | 0 | 39 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **23** | 8 | 4 | 71 | 106 |
+| **Both together** | **24** | 8 | 4 | 70 | 106 |
 
-Overall: **23 of 106 modules are fully complete** (about 22%). A further 8 have their API built but no screens yet.
+Overall: **24 of 106 modules are fully complete** (about 23%). A further 8 have their API built but no screens yet.
 
 ---
 
@@ -45,7 +45,7 @@ Overall: **23 of 106 modules are fully complete** (about 22%). A further 8 have 
 | M07 | Country management | ✅ | ✅ | ✅ | List/search/sort/page, create, edit (If-Match), activate, delete (blocked while states use it), restore (super admin), cached dropdown. Also built the shared list pieces M08–M15 reuse: `MasterListPage` + config, `DataTable`, `Pagination`, `StatusSwitch`. |
 | M08 | State management | ✅ | ✅ | ✅ | List/search/filter by country and type, create under an active country, edit, activate, delete (blocked while cities/boards/parents use it), restore (not under a deleted country), CSV import (dry-run check, then apply; any bad row rejects the whole file). A state with cities can't move to another country. |
 | M09 | City management | ✅ | ✅ | ✅ | List/search (closest names first)/filter by country, state, tier and launch status, create (slug made from the name, or your own), edit, activate, delete (blocked while areas/teachers/parents use it), restore (not under a deleted state), live stats. Marking a city as a launch city shows its numbers first and warns under 20 verified teachers; the slug is frozen after launch. |
-| M10 | Area management | ➖ | ➖ | ➖ | |
+| M10 | Area management | ✅ | ✅ | ✅ | List/search (name or a PIN code)/filter by city and map position, create (slug made from the name, unique within the city), edit, activate, delete (blocked while teachers/parents/students use it), restore (not under a deleted city), CSV import up to 2,000 rows (check first; any bad row rejects the file, or tick 'skip invalid rows'), merge a duplicate area into another in the same city (moves teachers/parents/students, combines PIN codes), PIN-code lookup API. |
 | M11 | Class management | ✅ | ✅ | ✅ | List/search/filter by stage, create, edit (code locked), activate, delete (blocked while teachers/children use it), restore, drag-or-arrow reorder (rewrites level order). References are read from the database, so nothing can be orphaned. |
 | M12 | Subject management | ➖ | ➖ | ➖ | |
 | M13 | Board management | ✅ | ✅ | ✅ | List/search/filter by type and state, create (a state board needs an active state, any other board has none), edit, activate, delete (blocked while teacher class mappings, children or students use it), restore. The state field only appears for state boards. |

@@ -15,6 +15,7 @@ import { listMasters, restoreMaster, setMasterActive } from '../api/masters.api'
 import type { ListParams } from '../api/masters.api'
 import { DeleteOrDeactivateDialog } from '../components/DeleteOrDeactivateDialog'
 import { ImportCsvDialog } from '../components/ImportCsvDialog'
+import { MergeDialog } from '../components/MergeDialog'
 import { MasterFormDrawer } from '../components/MasterFormDrawer'
 import { ReorderDialog } from '../components/ReorderDialog'
 import { UsageBadge } from '../components/UsageBadge'
@@ -69,6 +70,7 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
   const [editing, setEditing] = useState<Row | 'new' | null>(null)
   const [deleting, setDeleting] = useState<Row | null>(null)
   const [reordering, setReordering] = useState(false)
+  const [merging, setMerging] = useState<Row | null>(null)
   const [confirmingOff, setConfirmingOff] = useState<{ row: Row; message: string } | null>(null)
   const [importing, setImporting] = useState(false)
   const [filterValues, setFilterValues] = useState<Record<string, string>>({})
@@ -183,6 +185,19 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
               }}>
               Edit
             </button>
+            {config.merge ? (
+              <button
+                type="button"
+                className={linkButton}
+                aria-label={`Merge ${row.name}`}
+                onClick={() => {
+                  setNotice(null)
+                  setMerging(row)
+                }}
+              >
+                Merge
+              </button>
+            ) : null}
             {config.rowRules?.canDelete?.(row) === false ? null : (
               <button
                 type="button"
@@ -344,6 +359,19 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           }}
         />
       ) : null}
+      {merging ? (
+        <MergeDialog
+          config={config}
+          row={merging}
+          onClose={() => setMerging(null)}
+          onMerged={(into, moved) => {
+            setNotice(`Merged ${merging.name} into ${into}. ${moved === 0 ? 'Nothing pointed at it.' : `${moved} ${moved === 1 ? 'record' : 'records'} moved.`}`)
+            setMerging(null)
+            refresh()
+          }}
+        />
+      ) : null}
+
       {confirmingOff ? (
         <ConfirmDialog
           title={`Deactivate ${confirmingOff.row.name}?`}
@@ -375,7 +403,7 @@ export function MasterListPage<Row extends MasterRow, Form extends FieldValues>(
           onClose={() => setImporting(false)}
           onImported={(result) => {
             setImporting(false)
-            setNotice(`Imported ${result.created.length} ${config.plural}${result.skipped.length > 0 ? `, skipped ${result.skipped.length} that already existed` : ''}.`)
+            setNotice(`Imported ${result.created.length} ${config.plural}${result.skipped.length > 0 ? `, skipped ${result.skipped.length}` : ''}.`)
             refresh()
           }}
         />

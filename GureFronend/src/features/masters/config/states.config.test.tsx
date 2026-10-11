@@ -124,7 +124,7 @@ describe('states list page', () => {
     fireEvent.click(await within(dialog).findByRole('button', { name: 'Import 1 states' }))
 
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-    expect(screen.getByRole('status')).toHaveTextContent('Imported 1 states, skipped 1 that already existed.')
+    expect(screen.getByRole('status')).toHaveTextContent('Imported 1 states, skipped 1.')
   })
 
   it('hides Import CSV from a read-only admin', async () => {

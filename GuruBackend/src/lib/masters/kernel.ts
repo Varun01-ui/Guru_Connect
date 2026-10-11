@@ -61,6 +61,9 @@ export const inUseError = (noun: string, references: Record<string, number>) =>
 
 export const duplicateError = (message: string, field: string) => new ApiError(409, 'CONFLICT_DUPLICATE', message, { field })
 
+// Arrays (PIN codes, aliases) are values, not identities: the same items in the same order are no change.
+const sameValue = (a: unknown, b: unknown) => a === b || (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => x === b[i]))
+
 const withMappedDuplicates = <T>(def: { mapDuplicate: (e: unknown) => unknown }, run: () => Promise<T>) =>
   run().catch((e) => {
     throw def.mapDuplicate(e)
@@ -93,7 +96,7 @@ export async function patchMaster<Row extends BaseRow, View extends BaseView>(
       const before = def.present(row)
       if (row.updated_at.getTime() !== version.getTime()) throw staleError(def.noun, before)
 
-      const changes = Object.fromEntries(Object.entries(input).filter(([k, v]) => v !== undefined && v !== (before as Record<string, unknown>)[k]))
+      const changes = Object.fromEntries(Object.entries(input).filter(([k, v]) => v !== undefined && !sameValue(v, (before as Record<string, unknown>)[k])))
       if (Object.keys(changes).length === 0) return before
 
       await options.validate?.(trx, row, before, changes)

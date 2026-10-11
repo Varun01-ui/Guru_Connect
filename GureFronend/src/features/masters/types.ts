@@ -94,6 +94,11 @@ export type MasterConfig<Row extends MasterRow, Form extends FieldValues> = {
   confirmDeactivate?: (row: Row) => string | null
   /** Enables a "Reorder" dialog backed by PUT <apiPath>/order. `sort` is the list order that shows the current sequence. */
   reorder?: { sort: SortKey; warning?: string }
-  /** Enables a CSV import dialog backed by POST <apiPath>/import. */
-  importCsv?: { columns: string; example: string }
+  /** Enables a CSV import dialog backed by POST <apiPath>/import. `allowSkipInvalid` adds a "skip invalid rows" tick. */
+  importCsv?: { columns: string; example: string; allowSkipInvalid?: boolean }
+  /**
+   * Enables a "Merge" row action backed by POST <apiPath>/<id>/merge. `targetKey` is the body field that names the row to
+   * merge into; `scope` limits the choices (areas can only merge within their city).
+   */
+  merge?: { targetKey: string; scope?: (row: Row) => Record<string, string>; warning: string }
 }

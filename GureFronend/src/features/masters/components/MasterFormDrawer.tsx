@@ -19,9 +19,12 @@ type Props<Row extends MasterRow, Form extends FieldValues> = {
 const inputClass =
   'mt-1.5 w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-sm outline-none transition-colors focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent-soft)] aria-[invalid=true]:border-[var(--color-bad)] disabled:cursor-not-allowed disabled:bg-[var(--color-surface-2)] disabled:text-[var(--color-fg-muted)] read-only:cursor-not-allowed read-only:bg-[var(--color-surface-2)] read-only:text-[var(--color-fg-muted)]'
 
+// Lists (PIN codes) are values: the same items in the same order are no change.
+const sameValue = (a: unknown, b: unknown) => a === b || (Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => x === b[i]))
+
 // Only the fields whose value changed travel in a PATCH, so two admins editing different fields don't overwrite each other.
 function changedFields(next: Record<string, unknown>, base: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(next).filter(([key, value]) => value !== base[key]))
+  return Object.fromEntries(Object.entries(next).filter(([key, value]) => !sameValue(value, base[key])))
 }
 
 type SelectProps = {

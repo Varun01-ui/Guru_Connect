@@ -2,13 +2,13 @@ import { sql } from 'kysely'
 import type { Kysely } from 'kysely'
 import type { DB } from '../../db/types.js'
 
-type ForeignKey = { table: string; column: string; soft: boolean }
+export type ForeignKey = { table: string; column: string; soft: boolean }
 const cache = new Map<string, ForeignKey[]>()
 
 // Every single-column foreign key that points at `table`, read from the catalog. Module specs list the referencing
 // tables by hand and those lists go stale as modules land; asking PostgreSQL means a delete can never orphan a row,
 // including tables added later. The answer only changes with a migration, so it is cached for the process lifetime.
-async function foreignKeysTo(executor: Kysely<DB>, table: string): Promise<ForeignKey[]> {
+export async function foreignKeysTo(executor: Kysely<DB>, table: string): Promise<ForeignKey[]> {
   const hit = cache.get(table)
   if (hit) return hit
   const result = await sql<{ table_name: string; column_name: string; soft: boolean }>`
