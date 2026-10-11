@@ -37,6 +37,8 @@ export type MasterDef<Row extends BaseRow, View extends BaseView> = {
   mapDuplicate: (error: unknown) => unknown
   guardDeactivate?: (row: Row) => void
   guardDelete?: (row: Row) => void
+  /** Runs inside the restore transaction, e.g. to refuse restoring a child of a deleted parent. */
+  guardRestore?: (executor: Kysely<DB>, row: Row) => Promise<void> | void
 }
 
 export const auditBase = (ctx: Ctx, def: Pick<MasterDef<never, never>, 'auditModule' | 'table'>, entityId: string) => ({
@@ -153,6 +155,7 @@ export async function restoreMaster<Row extends BaseRow, View extends BaseView>(
     db.transaction().execute(async (trx) => {
       const row = await def.load(trx, id, { lock: true, includeDeleted: true })
       if (!row.deleted_at) throw conflictState(`This ${def.noun} is not deleted.`)
+      await def.guardRestore?.(trx, row)
       await update(trx, def.table, id, { deleted_at: null, deleted_by: null, updated_by: ctx.actor.id })
       const view = def.present(await def.load(trx, id))
       await audit(trx, { ...auditBase(ctx, def, id), action: `${def.auditPrefix}.restored`, newValues: def.snapshot(view) })

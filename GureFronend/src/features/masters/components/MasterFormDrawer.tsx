@@ -145,7 +145,7 @@ export function MasterFormDrawer<Row extends MasterRow, Form extends FieldValues
     const message = (errors as Record<string, { message?: string } | undefined>)[field.name]?.message
     const name = field.name as Path<Form>
     const isLocked = locked.has(field.name)
-    const hint = isLocked ? (field.kind === 'switch' ? field.hint : "Can't be changed after it is created.") : field.hint
+    const hint = isLocked ? (field.kind === 'switch' ? field.hint : (field.lockedHint ?? "Can't be changed after it is created.")) : field.hint
 
     if (field.kind === 'switch') {
       return (
