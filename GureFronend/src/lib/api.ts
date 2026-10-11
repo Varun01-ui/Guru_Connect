@@ -50,7 +50,10 @@ export function refreshSession(): Promise<boolean> {
   return refreshInFlight
 }
 
-export async function apiFetch<T>(path: string, init: RequestInit = {}, retryOn401 = true): Promise<T> {
+export type PageMeta = { page: number; pageSize: number; total: number; totalPages: number }
+
+// Returns the whole envelope (or undefined for a 204) so list calls can read `meta`.
+async function apiRequest<T>(path: string, init: RequestInit, retryOn401: boolean): Promise<Envelope<T> | undefined> {
   const send = () => {
     const token = getAccessToken()
     return fetch(`${API_BASE_URL}${path}`, {
@@ -81,7 +84,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retryOn4
     authStore.expire()
   }
 
-  if (response.status === 204) return undefined as T
+  if (response.status === 204) return undefined
 
   if (!response.ok || !body || 'error' in body) {
     const err = body && 'error' in body ? body.error : undefined
@@ -94,5 +97,16 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retryOn4
     )
   }
 
-  return body.data
+  return body
+}
+
+export async function apiFetch<T>(path: string, init: RequestInit = {}, retryOn401 = true): Promise<T> {
+  const envelope = await apiRequest<T>(path, init, retryOn401)
+  return envelope?.data as T
+}
+
+// Offset-paginated admin lists: `{ data: [...], meta: { page, pageSize, total, totalPages } }`.
+export async function apiFetchPage<T>(path: string, init: RequestInit = {}): Promise<{ data: T; meta: PageMeta }> {
+  const envelope = await apiRequest<T>(path, init, true)
+  return { data: envelope!.data, meta: envelope!.meta as PageMeta }
 }

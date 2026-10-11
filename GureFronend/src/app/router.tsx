@@ -7,6 +7,8 @@ import { AcceptInvitePage } from '../features/auth/pages/AcceptInvitePage'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { ResetPasswordPage } from '../features/auth/pages/ResetPasswordPage'
 import { SessionsPage } from '../features/auth/pages/SessionsPage'
+import { countriesConfig } from '../features/masters/config/countries.config'
+import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -19,6 +21,16 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <DashboardPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/masters/locations/countries',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <MasterListPage config={countriesConfig} />
         </AppShell>
       </RequireAuth>
     ),

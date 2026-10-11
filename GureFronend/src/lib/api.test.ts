@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { authStore } from '../features/auth/authStore'
-import { apiFetch, ApiError } from './api'
+import { apiFetch, apiFetchPage, ApiError } from './api'
 
 const admin = { id: '1', email: 'a@b.co', fullName: 'A B', isSuperAdmin: false, avatarUrl: null }
 
@@ -73,5 +73,21 @@ describe('apiFetch', () => {
     fetchMock.mockResolvedValue(jsonResponse(401, { error: { code: 'AUTH_INVALID_CREDENTIALS', message: 'Email or password is incorrect.' } }))
     await expect(apiFetch('/auth/login', { method: 'POST' })).rejects.toMatchObject({ code: 'AUTH_INVALID_CREDENTIALS' })
     expect(authStore.getState().status).toBe('anonymous')
+  })
+})
+
+describe('apiFetchPage', () => {
+  it('returns the rows together with the pagination meta', async () => {
+    const meta = { page: 2, pageSize: 20, total: 45, totalPages: 3 }
+    fetchMock.mockResolvedValue(jsonResponse(200, { data: [{ id: 'a' }], meta }))
+    await expect(apiFetchPage('/countries?page=2')).resolves.toEqual({ data: [{ id: 'a' }], meta })
+    expect(fetchMock.mock.calls[0]![1].headers.Authorization).toBe('Bearer old-token')
+  })
+
+  it('throws an ApiError on failure just like apiFetch', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(403, { error: { code: 'FORBIDDEN', message: 'No.' } }))
+    const err = await apiFetchPage('/countries').catch((e) => e)
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err).toMatchObject({ status: 403, code: 'FORBIDDEN' })
   })
 })

@@ -244,6 +244,22 @@ export interface DB {
     updated_at: Generated<Timestamp>
     deleted_at: Timestamp | null
   }
+  countries: {
+    id: Generated<string>
+    name: string
+    iso2: string
+    iso3: string
+    phone_code: string
+    currency_code: string
+    is_active: Generated<boolean>
+    sort_order: Generated<number>
+    created_by: string | null
+    updated_by: string | null
+    created_at: Generated<Timestamp>
+    updated_at: Generated<Timestamp>
+    deleted_at: Timestamp | null
+    deleted_by: string | null
+  }
   states: {
     id: string
     country_id: string
