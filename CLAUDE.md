@@ -107,6 +107,8 @@ Seeds are idempotent — safe to re-run. Prefer `sql/migrations/*.sql` (numbered
 
 When a module is finished (API, screens and tests passing), tick it in `ROADMAP-STATUS.md` (module row, summary counts, "Last updated", next steps), then run `node scripts/syncRoadmap.mjs`. The progress block and the Status column in `README.md` are generated from that file, so editing `README.md` by hand gets overwritten.
 
+**Enforced by a hook:** `.claude/settings.json` runs `scripts/roadmapGuard.mjs` before every `git commit`. A commit that stages `GuruBackend/src` or `GureFronend/src` files without `ROADMAP-STATUS.md` is blocked, so the roadmap ships in the same commit and PR as the feature, never in a separate PR. For a commit that finishes no module (bug fix, refactor), add `[skip-roadmap]` to the commit message. When the tracker is staged, the hook regenerates and stages `README.md` itself.
+
 ## Architecture — things that require reading multiple files to understand
 
 - **API envelope & errors.** Every response is `{ data, meta? }` or `{ error: { code, message, details?, requestId } }` — never a bare object or array. The standard error codes table (`00-conventions.md` §3) is shared across all modules; add a new code there before inventing one in a module.
