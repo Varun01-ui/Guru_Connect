@@ -23,8 +23,17 @@ const NAV: { section: string; items: { to: string; label: string; permission?: s
     ],
   },
   {
+    section: 'CMS',
+    items: [{ to: '/cms/banners', label: 'Banners', permission: 'banners.read' }],
+  },
+  {
+    section: 'Payments',
+    items: [{ to: '/payments/config', label: 'Fee configuration', permission: 'payment_config.read' }],
+  },
+  {
     section: 'Settings',
     items: [
+      { to: '/settings/general', label: 'Global settings', permission: 'settings.read' },
       { to: '/settings/roles', label: 'Roles', permission: 'roles.read' },
       { to: '/settings/admins', label: 'Admins', permission: 'admins.read' },
     ],
@@ -96,6 +105,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-bg)]/85 px-6 py-3.5 backdrop-blur">
+          <Link
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]"
+            to="/account"
+          >
+            My account
+          </Link>
           <Link
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--color-fg-muted)] transition-colors hover:text-[var(--color-fg)]"
             to="/account/security"

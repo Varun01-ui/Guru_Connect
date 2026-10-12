@@ -100,6 +100,7 @@ guruconnect/
 | `GATEWAY_ERROR` | 502 | Razorpay, S3, SES or FCM failed |
 | `IDEMPOTENCY_MISMATCH` | 422 | `Idempotency-Key` reused with a different request body |
 | `INVALID_SIGNATURE` | 400 | Webhook HMAC check failed (public webhook receivers only) |
+| `MAINTENANCE` | 503 | Mobile API in maintenance mode (`app.maintenance_mode`); only `/bootstrap`, `/settings` and `/auth/*` stay open |
 | `QUERY_TIMEOUT` | 503 | Report query exceeded `statement_timeout` (15 s); suggest narrowing filters or exporting |
 | `INTERNAL_ERROR` | 500 | Anything else (logged with requestId) |
 

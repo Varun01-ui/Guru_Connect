@@ -22,10 +22,10 @@ Implementation-ready SRS for the GuruConnect admin portal, split into **51 modul
 
 | | Complete | API only | Partly done | Not started |
 | --- | --- | --- | --- | --- |
-| **Admin web** (51) | **11** | 2 | 0 | 38 |
+| **Admin web** (51) | **15** | 2 | 0 | 34 |
 | **Mobile app** (55) | **14** | 6 | 4 | 31 |
 
-- **Admin modules complete:** M01, M02, M07, M08, M09, M10, M11, M12, M13, M14, M15
+- **Admin modules complete:** M01, M02, M03, M04, M05, M07, M08, M09, M10, M11, M12, M13, M14, M15, M44
 - **Admin modules with an API but no screens yet:** M00, M16
 <!-- build-status:end -->
 
@@ -76,9 +76,9 @@ Build top to bottom. A module can start once everything in *Depends on* is merge
 | [M00](modules/M00-platform-foundation-audit-logs-files-app-users.md) | Platform Foundation (Audit Logs, Files, App Users) | 🟡 | Platform Foundation | — | `audit_logs`, `files`, `app_users` | 10 | 3–4 days |
 | [M01](modules/M01-authentication-system.md) | Authentication System | ✅ | Foundation | M00 | `admins`, `admin_sessions`, `password_reset_tokens` | 11 | 4–5 days |
 | [M02](modules/M02-roles-permissions.md) | Roles & Permissions | ✅ | Foundation | M00, M01 | `roles`, `permissions`, `role_permissions`, `admin_roles` | 16 | 4 days |
-| [M03](modules/M03-admin-profile-management.md) | Admin Profile Management | ➖ | Foundation | M00, M01 | `admin_profiles` | 5 | 1–2 days |
-| [M04](modules/M04-global-settings.md) | Global Settings | ➖ | Configuration | M00, M01, M02 | `system_settings` | 4 | 2 days |
-| [M05](modules/M05-dynamic-payment-configuration.md) | Dynamic Payment Configuration | ➖ | Configuration | M00, M01, M02 | `payment_configurations`, `payment_configuration_history` | 11 | 5 days |
+| [M03](modules/M03-admin-profile-management.md) | Admin Profile Management | ✅ | Foundation | M00, M01 | `admin_profiles` | 5 | 1–2 days |
+| [M04](modules/M04-global-settings.md) | Global Settings | ✅ | Configuration | M00, M01, M02 | `system_settings` | 4 | 2 days |
+| [M05](modules/M05-dynamic-payment-configuration.md) | Dynamic Payment Configuration | ✅ | Configuration | M00, M01, M02 | `payment_configurations`, `payment_configuration_history` | 11 | 5 days |
 | [M06](modules/M06-referral-configuration.md) | Referral Configuration | ➖ | Configuration | M00, M01, M02, M05 | `referral_settings` | 7 | 2–3 days |
 | [M07](modules/M07-country-management.md) | Country Management | ✅ | Locations | M00, M01, M02 | `countries` | 8 | 1 day |
 | [M08](modules/M08-state-management.md) | State Management | ✅ | Locations | M07 | `states` | 9 | 1 day |
@@ -117,7 +117,7 @@ Build top to bottom. A module can start once everything in *Depends on* is merge
 | [M41](modules/M41-subscription-payments.md) | Subscription Payments | ➖ | Payments | M05, M40 | `subscriptions` | 8 | 3 days |
 | [M42](modules/M42-referral-management.md) | Referral Management | ➖ | Referrals | M06, M40 | `referral_codes`, `referrals` | 12 | 3 days |
 | [M43](modules/M43-complaint-management.md) | Complaint Management | ➖ | Complaints | M00, M16, M22, M28, M31, M38 | `complaints`, `complaint_actions`, `complaint_attachments` | 16 | 5 days |
-| [M44](modules/M44-banner-management.md) | Banner Management | ➖ | CMS | M00, M09 | `banners` | 10 | 2 days |
+| [M44](modules/M44-banner-management.md) | Banner Management | ✅ | CMS | M00, M09 | `banners` | 10 | 2 days |
 | [M45](modules/M45-blog-management.md) | Blog Management | ➖ | CMS | M00, M11 | `blogs` | 12 | 3 days |
 | [M46](modules/M46-notification-management.md) | Notification Management | ➖ | CMS | M00, M28, M31 | `notifications`, `notification_recipients` | 11 | 4 days |
 | [M47](modules/M47-dashboard-analytics.md) | Dashboard Analytics | ➖ | Reporting | M16, M17, M18, M19, M20, M21, M22, M23, M24, M25, M26, M27, M28, M29, M30, M31, M32, M33, M34, M35, M36, M37, M38, M39, M40, M41, M42, M43, M44, M45, M46 | `daily_platform_stats` | 7 | 4 days |

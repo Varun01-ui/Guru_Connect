@@ -5,20 +5,24 @@ import { fileTooLarge, fileTypeNotAllowed, gatewayError, limitReached, notFound,
 import { cdnUrl } from '../../../lib/present.js'
 import { sniffMime, storage, storageIsConfigured } from '../../../lib/storage.js'
 import type { Bucket } from '../../../lib/storage.js'
-import { EXTENSION_FOR_MIME, GET_URL_TTL_SECONDS, MAX_PENDING_UPLOADS, PRESIGN_TTL_SECONDS, UPLOAD_PURPOSES } from './uploads.config.js'
-import type { UploadPurpose } from './uploads.config.js'
+import { ADMIN_UPLOAD_PURPOSES, EXTENSION_FOR_MIME, GET_URL_TTL_SECONDS, MAX_PENDING_UPLOADS, PRESIGN_TTL_SECONDS, UPLOAD_PURPOSES } from './uploads.config.js'
+import type { UploadPurposeConfig } from './uploads.config.js'
 import * as repo from './uploads.repository.js'
 import type { FileRow } from './uploads.repository.js'
 
-export type UploadContext = { userId: string; ip: string | null }
+// `ownerType` says whose id `userId` is: a mobile user (default) or an admin using /api/v1/admin/uploads.
+export type UploadContext = { userId: string; ip: string | null; ownerType?: 'app_user' | 'admin'; actorEmail?: string | null }
 
 const MB = 1024 * 1024
 const baseMime = (value: string) => value.split(';')[0]!.trim().toLowerCase()
 
 // 1) Presign: validate the request against the purpose's rules, record a pending file, hand back a short-lived PUT URL.
-export async function presign(ctx: UploadContext, body: { purpose: UploadPurpose; mimeType: string; sizeBytes: number; fileName: string }) {
+export async function presign(ctx: UploadContext, body: { purpose: string; mimeType: string; sizeBytes: number; fileName: string }) {
   if (!storageIsConfigured()) throw gatewayError("File storage isn't set up yet.")
-  const rules = UPLOAD_PURPOSES[body.purpose]
+  const ownerType = ctx.ownerType ?? 'app_user'
+  const purposes: Record<string, UploadPurposeConfig> = ownerType === 'admin' ? ADMIN_UPLOAD_PURPOSES : UPLOAD_PURPOSES
+  const rules = purposes[body.purpose]
+  if (!rules) throw validationFailed([{ path: 'purpose', message: 'Unknown upload purpose.' }])
 
   const allowed = rules.mimeTypes as readonly string[]
   if (!allowed.includes(body.mimeType)) {
@@ -28,7 +32,7 @@ export async function presign(ctx: UploadContext, body: { purpose: UploadPurpose
     throw fileTooLarge(`Files can be up to ${rules.maxBytes / MB} MB.`, { maxBytes: rules.maxBytes })
   }
 
-  const pending = await repo.countPendingFiles(ctx.userId)
+  const pending = await repo.countPendingFiles(ctx.userId, db, ownerType)
   if (pending >= MAX_PENDING_UPLOADS) {
     throw limitReached(MAX_PENDING_UPLOADS, pending, 'Finish or cancel your other uploads first.', 'max_pending_uploads')
   }
@@ -44,6 +48,7 @@ export async function presign(ctx: UploadContext, body: { purpose: UploadPurpose
     visibility: rules.visibility,
     purpose: body.purpose,
     userId: ctx.userId,
+    ownerType,
   })
 
   const signed = storage.presignPut({ bucket: rules.bucket, key, contentType: body.mimeType, sizeBytes: body.sizeBytes, expiresInSeconds: PRESIGN_TTL_SECONDS })
@@ -65,7 +70,7 @@ const summary = (file: FileRow) => ({
 
 // 3) Confirm: check what actually landed in storage against what was promised at presign time.
 export async function confirm(ctx: UploadContext, fileId: string) {
-  const file = await repo.findOwnFile(fileId, ctx.userId)
+  const file = await repo.findOwnFile(fileId, ctx.userId, db, ctx.ownerType ?? 'app_user')
   if (!file) throw notFound('File not found.')
   if (file.status === 'uploaded') return summary(file) // confirming twice is harmless
   if (file.status !== 'pending') throw notFound('File not found.')
@@ -91,10 +96,11 @@ export async function confirm(ctx: UploadContext, fileId: string) {
 
   if (!(await repo.markUploaded(file.id))) throw notFound('File not found.')
   await audit(db, {
-    actorType: 'app_user',
+    actorType: ctx.ownerType === 'admin' ? 'admin' : 'app_user',
     actorId: ctx.userId,
-    action: 'app.file_uploaded',
-    module: 'app.uploads',
+    actorEmail: ctx.actorEmail ?? null,
+    action: ctx.ownerType === 'admin' ? 'file.uploaded' : 'app.file_uploaded',
+    module: ctx.ownerType === 'admin' ? 'files' : 'app.uploads',
     entityType: 'file',
     entityId: file.id,
     // Purpose, size and type only — never the file name (it can identify a document).

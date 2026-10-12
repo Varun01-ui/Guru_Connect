@@ -20,6 +20,16 @@ export const UPLOAD_PURPOSES = {
   support_attachment: { bucket: BUCKETS.private, visibility: 'private', prefix: 'support', mimeTypes: DOCUMENTS, maxBytes: 10 * MB },
 } as const satisfies Record<string, UploadPurposeConfig>
 
+// Files uploaded by admins through /api/v1/admin/uploads (M03 avatar, M44 banner image). Kept apart from the app
+// purposes so a mobile user can never presign one of these.
+export const ADMIN_UPLOAD_PURPOSES = {
+  admin_avatar: { bucket: BUCKETS.public, visibility: 'public', prefix: 'admin-avatars', mimeTypes: IMAGES, maxBytes: 2 * MB },
+  banner_image: { bucket: BUCKETS.public, visibility: 'public', prefix: 'banners', mimeTypes: IMAGES, maxBytes: 500 * 1024 },
+} as const satisfies Record<string, UploadPurposeConfig>
+
+export type AdminUploadPurpose = keyof typeof ADMIN_UPLOAD_PURPOSES
+export const ADMIN_UPLOAD_PURPOSE_NAMES = Object.keys(ADMIN_UPLOAD_PURPOSES) as [AdminUploadPurpose, ...AdminUploadPurpose[]]
+
 export type UploadPurpose = keyof typeof UPLOAD_PURPOSES
 export const UPLOAD_PURPOSE_NAMES = Object.keys(UPLOAD_PURPOSES) as [UploadPurpose, ...UploadPurpose[]]
 

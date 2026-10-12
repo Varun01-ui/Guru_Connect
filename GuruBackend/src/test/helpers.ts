@@ -133,7 +133,31 @@ export async function purgeRbacFixtures(emailPrefix = 'rbac-test') {
     await db.deleteFrom('roles').where('id', 'in', roles).execute()
   }
   if (admins.length) {
+    // Rows the M03/M04/M05/M44 tests leave behind must not keep an admin alive through their foreign keys.
+    await db.updateTable('system_settings').set({ updated_by: null }).where('updated_by', 'in', admins).execute()
+    await db.updateTable('payment_configurations').set({ created_by: null }).where('created_by', 'in', admins).execute()
+    await db.updateTable('payment_configurations').set({ updated_by: null }).where('updated_by', 'in', admins).execute()
+    await db.updateTable('payment_configurations').set({ published_by: null }).where('published_by', 'in', admins).execute()
+    await db.updateTable('payment_configuration_history').set({ changed_by: null }).where('changed_by', 'in', admins).execute()
+    await db.deleteFrom('files').where('uploaded_by_type', '=', 'admin').where('uploaded_by_id', 'in', admins).where('id', 'not in', db.selectFrom('banners').select('image_file_id')).execute()
+  }
+  if (admins.length) {
     await db.updateTable('admins').set({ created_by: null, updated_by: null, deleted_by: null }).where('created_by', 'in', admins).execute()
     await db.deleteFrom('admins').where('id', 'in', admins).execute()
   }
+}
+
+// Full admin upload: presign -> PUT the bytes to the signed URL -> confirm. Returns every response.
+export async function adminUpload(app: Express, admin: { token: string }, opts: { purpose?: string; mimeType?: string; bytes: Buffer; fileName?: string }) {
+  const mimeType = opts.mimeType ?? 'image/png'
+  const presigned = await request(app)
+    .post(`${API}/uploads/presign`)
+    .set(authed(admin.token))
+    .send({ purpose: opts.purpose ?? 'admin_avatar', mimeType, sizeBytes: opts.bytes.length, fileName: opts.fileName ?? 'image.png' })
+  if (presigned.status !== 201) return { presigned, put: null, confirmed: null, fileId: null as string | null }
+  const url = new URL(presigned.body.data.uploadUrl)
+  const put = await request(app).put(`${url.pathname}${url.search}`).set('Content-Type', mimeType).send(opts.bytes)
+  const fileId = presigned.body.data.fileId as string
+  const confirmed = await request(app).post(`${API}/uploads/${fileId}/confirm`).set(authed(admin.token))
+  return { presigned, put, confirmed, fileId }
 }
