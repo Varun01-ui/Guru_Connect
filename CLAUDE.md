@@ -103,6 +103,10 @@ Seeds are idempotent — safe to re-run. Prefer `sql/migrations/*.sql` (numbered
 - Frontend: a page/component isn't done until it has a Vitest + Testing Library test for its rendered states relevant to the change (loading/empty/error where applicable).
 - Never mark a module or task complete without running its tests and seeing them pass.
 
+## Roadmap rule
+
+When a module is finished (API, screens and tests passing), tick it in `ROADMAP-STATUS.md` (module row, summary counts, "Last updated", next steps), then run `node scripts/syncRoadmap.mjs`. The progress block and the Status column in `README.md` are generated from that file, so editing `README.md` by hand gets overwritten.
+
 ## Architecture — things that require reading multiple files to understand
 
 - **API envelope & errors.** Every response is `{ data, meta? }` or `{ error: { code, message, details?, requestId } }` — never a bare object or array. The standard error codes table (`00-conventions.md` §3) is shared across all modules; add a new code there before inventing one in a module.

@@ -1,6 +1,6 @@
 # GuruConnect — Build Roadmap & Progress Tracker
 
-_Last updated: 2026-10-11_
+_Last updated: 2026-10-12_
 
 How to use: when a module's API and screens are finished **and its tests pass**, change `➖` to `✅` in its row (and update the overall column and the summary counts), then run `node scripts/syncRoadmap.mjs` to carry the ticks into the **Status** column of the *Implementation order* table in `README.md` (the repo's front page on GitHub).
 
@@ -23,11 +23,11 @@ Two products share one backend (`GuruBackend/`):
 
 | | Complete (API + UI) | API only | Partly done | Not started | Total |
 |---|---|---|---|---|---|
-| **Admin web** | **11** | 2 | 0 | 38 | 51 |
+| **Admin web** | **15** | 2 | 0 | 34 | 51 |
 | **Mobile app** | **14** | 6 | 4 | 31 | 55 |
-| **Both together** | **25** | 8 | 4 | 69 | 106 |
+| **Both together** | **29** | 8 | 4 | 65 | 106 |
 
-Overall: **25 of 106 modules are fully complete** (about 24%). A further 8 have their API built but no screens yet.
+Overall: **29 of 106 modules are fully complete** (about 27%). A further 8 have their API built but no screens yet.
 
 ---
 
@@ -38,9 +38,9 @@ Overall: **25 of 106 modules are fully complete** (about 24%). A further 8 have 
 | M00 | Platform foundation (audit logs, files, app users) | ✅ | ➖ | 🟡 | Tables, audit helper, files. No admin UI for audit logs/files. |
 | M01 | Authentication | ✅ | ✅ | ✅ | Login, OTP login, forgot/reset, invite, sessions. Open: Argon2id, RS256, HIBP, SMS gateway. |
 | M02 | Roles & permissions | ✅ | ✅ | ✅ | API was already done; the screens are now built. Roles (cards, search), role editor with a permission matrix (sensitive permissions marked, reason required, stale-edit reload, Super Admin read-only), Admins list (search, status/role/last-sign-in filters, paging), admin detail (edit name, change roles with a gain/lose preview, resend invite, disable/enable/delete with a reason, sign out everywhere) and the invite dialog. Not done: the audit trail on the admin page, because the audit log viewer (M00) doesn't exist yet. |
-| M03 | Admin profile management | ➖ | ➖ | ➖ | |
-| M04 | Global settings | ➖ | ➖ | ➖ | |
-| M05 | Dynamic payment configuration | ➖ | ➖ | ➖ | |
+| M03 | Admin profile management | ✅ | ✅ | ✅ | `/account`: profile, avatar (new admin upload endpoints), theme / time zone / language, notification prefs, change password. Avatar is cropped in the browser; no server-side size variants. |
+| M04 | Global settings | ✅ | ✅ | ✅ | `/settings/general`: tabs per group, typed inputs, sticky save bar, per-key history, typed confirmation for maintenance mode. Public `GET /app/settings` (ETag) and the mobile `503 MAINTENANCE` gate are live. |
+| M05 | Dynamic payment configuration | ✅ | ✅ | ✅ | `/payments/config`: fee cards, autosaved drafts, price preview, publish now or schedule, toggle, cancel, restore, change history; `GET /app/pricing`. Per-minute job activates scheduled prices. |
 | M06 | Referral configuration | ➖ | ➖ | ➖ | |
 | M07 | Country management | ✅ | ✅ | ✅ | List/search/sort/page, create, edit (If-Match), activate, delete (blocked while states use it), restore (super admin), cached dropdown. Also built the shared list pieces M08–M15 reuse: `MasterListPage` + config, `DataTable`, `Pagination`, `StatusSwitch`. |
 | M08 | State management | ✅ | ✅ | ✅ | List/search/filter by country and type, create under an active country, edit, activate, delete (blocked while cities/boards/parents use it), restore (not under a deleted country), CSV import (dry-run check, then apply; any bad row rejects the whole file). A state with cities can't move to another country. |
@@ -79,7 +79,7 @@ Overall: **25 of 106 modules are fully complete** (about 24%). A further 8 have 
 | M41 | Subscription payments | ➖ | ➖ | ➖ | |
 | M42 | Referral management | ➖ | ➖ | ➖ | |
 | M43 | Complaint management | ➖ | ➖ | ➖ | |
-| M44 | Banner management | ➖ | ➖ | ➖ | Mobile already *serves* banners; no admin CRUD. |
+| M44 | Banner management | ✅ | ✅ | ✅ | `/cms/banners`: list by placement, editor with live phone preview, publish / pause / resume, reorder with ↑ ↓, audience preview. App gets `/app/banners` and `/app/events`. Counters are added straight onto the banner row (no 15-minute aggregation job). |
 | M45 | Blog management | ➖ | ➖ | ➖ | |
 | M46 | Notification management | ➖ | ➖ | ➖ | |
 | M47 | Dashboard analytics | ➖ | ➖ | ➖ | The dashboard page is a placeholder. |
@@ -155,7 +155,7 @@ Overall: **25 of 106 modules are fully complete** (about 24%). A further 8 have 
 
 Ordered by what unblocks the most:
 
-1. **Admin settings M03–M06** (admin profile, global settings, payment configuration, referral configuration). The location and education masters (M07–M15) are all done; M04 global settings is the one the mobile app reads (`system_settings`: child limits, wallet on/off), and today those only change through SQL.
+1. **Admin M06 referral configuration**, the last of the settings modules. M03, M04 and M05 are done, as are the location and education masters (M07–M15).
 2. **Admin UI for M02 and M16.** The APIs are done; without screens nobody can review a teacher in the browser.
 3. **Teacher and institute search (mobile M27–M31).** This is what fills the empty parent/student dashboard rails.
 4. **Mobile screens for M10–M13 and M21**, since their APIs already exist.
