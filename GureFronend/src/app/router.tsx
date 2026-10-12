@@ -20,6 +20,12 @@ import { boardsConfig } from '../features/masters/config/boards.config'
 import { citiesConfig } from '../features/masters/config/cities.config'
 import { areasConfig } from '../features/masters/config/areas.config'
 import { subjectsConfig } from '../features/masters/config/subjects.config'
+import { AccountPage } from '../features/account/pages/AccountPage'
+import { BannerEditorPage } from '../features/cms/banners/pages/BannerEditorPage'
+import { BannersPage } from '../features/cms/banners/pages/BannersPage'
+import { FeeDetailPage } from '../features/payment-config/pages/FeeDetailPage'
+import { PaymentConfigPage } from '../features/payment-config/pages/PaymentConfigPage'
+import { GlobalSettingsPage } from '../features/settings/pages/GlobalSettingsPage'
 import { MasterListPage } from '../features/masters/pages/MasterListPage'
 
 const router = createBrowserRouter([
@@ -173,6 +179,76 @@ const router = createBrowserRouter([
       <RequireAuth>
         <AppShell>
           <MasterListPage config={subjectsConfig} />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/settings/general',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <GlobalSettingsPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/account',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <AccountPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/cms/banners',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <BannersPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/cms/banners/new',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <BannerEditorPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/cms/banners/:id',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <BannerEditorPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/payments/config',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <PaymentConfigPage />
+        </AppShell>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/payments/config/:feeCode',
+    element: (
+      <RequireAuth>
+        <AppShell>
+          <FeeDetailPage />
         </AppShell>
       </RequireAuth>
     ),

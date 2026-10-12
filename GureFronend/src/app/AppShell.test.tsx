@@ -77,4 +77,19 @@ describe('AppShell sidebar', () => {
     expect(screen.getByRole('link', { name: 'Countries' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current')
   })
+
+  it('links the new modules by their permissions', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: (key) => ['settings.read', 'banners.read', 'payment_config.read'].includes(key) })
+    renderShell()
+    expect(screen.getByRole('link', { name: 'Global settings' })).toHaveAttribute('href', '/settings/general')
+    expect(screen.getByRole('link', { name: 'Banners' })).toHaveAttribute('href', '/cms/banners')
+    expect(screen.getByRole('link', { name: 'Fee configuration' })).toHaveAttribute('href', '/payments/config')
+    expect(screen.getByRole('link', { name: 'My account' })).toHaveAttribute('href', '/account')
+  })
+
+  it('hides them from an admin without those permissions', () => {
+    vi.mocked(usePermissions).mockReturnValue({ isLoading: false, isSuperAdmin: false, can: () => false })
+    renderShell()
+    for (const name of ['Global settings', 'Banners', 'Fee configuration']) expect(screen.queryByRole('link', { name })).toBeNull()
+  })
 })
